@@ -11,10 +11,13 @@
         http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <mvc:annotation-driven/>
-
     <mvc:interceptors>
         <mvc:interceptor>
-            <mvc:mapping path="/*"/>
+            <mvc:mapping path="/test"/>
+            <bean class="com.chitter.controllers.DummyInterceptor"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/test"/>
             <bean class="com.chitter.controllers.AuthInterceptor"/>
         </mvc:interceptor>
     </mvc:interceptors>

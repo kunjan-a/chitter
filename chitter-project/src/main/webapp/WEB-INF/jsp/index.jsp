@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+Welcome ${name}
+
 <c:if test="${not empty sessionScope.userName}">
     <script type="text/javascript">
         window.location = "/test"

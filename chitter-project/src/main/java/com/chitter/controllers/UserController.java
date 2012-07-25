@@ -40,7 +40,7 @@ public class UserController {
     public ModelAndView login(@RequestParam("username") String userName,
                               @RequestParam("password") String password,
                               HttpSession session) {
-        ModelAndView mv = new ModelAndView("/index");
+        ModelAndView mv = new ModelAndView("index");
         long userID;
         try {
             Map<String, Object> userData = db.queryForMap("select id, username, password from users where username=?",
@@ -53,10 +53,12 @@ public class UserController {
         } catch (EmptyResultDataAccessException e) {
             db.update("insert into users (username, password) values(?, ?)", userName, password);
             userID = db.queryForLong("select currval('users_id_seq');");//"CALL IDENTITY()");
+            throw(e);
         }
         session.setAttribute("userName", userName);
         session.setAttribute("userID", userID);
         mv.setViewName("redirect:/test");
+        //mv.addObject("name",userName);
         return mv;
     }
 
