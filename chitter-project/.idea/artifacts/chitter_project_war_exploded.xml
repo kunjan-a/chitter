@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="chitter-project:war exploded">
+    <output-path>$PROJECT_DIR$/target/chitter-project</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="chitter-project/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="chitter-project" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

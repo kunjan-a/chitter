@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="chitter-project:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="chitter-project.war">
+      <element id="artifact" artifact-name="chitter-project:war exploded" />
+    </root>
+  </artifact>
+</component>
