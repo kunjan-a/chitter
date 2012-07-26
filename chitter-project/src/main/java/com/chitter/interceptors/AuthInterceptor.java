@@ -34,11 +34,10 @@ public class AuthInterceptor extends BaseInterceptor {
             String userName = (String) session.getAttribute("userName");
             if (userName != null) {
                 userID.set((Long) session.getAttribute("userID"));
-                return true;
             }
         } else
             userID.set(null);
 
-        return false;
+        return true;
     }
 }

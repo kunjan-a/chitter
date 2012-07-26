@@ -53,8 +53,7 @@ public class UserController {
         String msg = "Invalid username/password.";
         String status = "0";
         try {
-            Map<String, Object> userData = db.queryForMap("select id, name, email, password from users where email=?",
-                    email);
+            Map<String, Object> userData = db.queryForMap("select id, name, email, password from users where email = ?", email);
             if (userData.get("password").equals(password)) {
                 status = "1";
                 msg = "Login successful";
