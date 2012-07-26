@@ -8,6 +8,9 @@ package com.chitter.interceptors;
  * To change this template use File | Settings | File Templates.
  */
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -17,7 +20,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class LoggedInActionInterceptor extends BaseInterceptor {
 
-    public LoggedInActionInterceptor(ThreadLocal<Long> userID) {
+    @Autowired
+    public LoggedInActionInterceptor(@Qualifier("userID") ThreadLocal<Long> userID) {
         super(userID);
     }
 
