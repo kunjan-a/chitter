@@ -7,23 +7,26 @@ package com.chitter.controllers;
  * Time: 8:18 PM
  * To change this template use File | Settings | File Templates.
  */
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-public class AuthInterceptor extends HandlerInterceptorAdapter {
-    private final ThreadLocal<Long> userID;        // We dont need to keep passing session object or user id at each place.
+/**
+ * Sets userID if logged in. Doesn't do any redirect and always returns true..
+ */
+public class AuthInterceptor extends BaseInterceptor {
 
     @Autowired
     public AuthInterceptor(@Qualifier("userID") ThreadLocal<Long> userID) {
-        this.userID = userID;
+        super(userID);
     }
 
-    @Override public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
 
         HttpSession session = request.getSession(false);
@@ -33,8 +36,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
                 userID.set((Long) session.getAttribute("userID"));
                 return true;
             }
-        }
-        response.sendRedirect("/");
+        } else
+            userID.set(null);
+
         return false;
     }
 }

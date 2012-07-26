@@ -17,11 +17,24 @@
             <bean class="com.chitter.controllers.DummyInterceptor"/>
         </mvc:interceptor>
         <mvc:interceptor>
-            <mvc:mapping path="/test"/>
+            <mvc:mapping path="/"/>
+            <mvc:mapping path="/*"/>
             <bean class="com.chitter.controllers.AuthInterceptor"/>
         </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/"/>
+            <bean class="com.chitter.controllers.HomePageInterceptor"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/login"/>
+            <bean class="com.chitter.controllers.LoginPageInterceptor"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/action/*"/>
+            <bean class="com.chitter.controllers.LoggedInActionInterceptor"/>
+        </mvc:interceptor>
     </mvc:interceptors>
-    <mvc:default-servlet-handler />
+    <mvc:default-servlet-handler/>
     <context:component-scan base-package="com.chitter"/>
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
