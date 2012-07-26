@@ -1,4 +1,4 @@
-package com.chitter.controllers;
+package com.chitter.interceptors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,12 +12,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Not Logged in : return true.<br/>
- * Logged in: redirect to "/" and return false
+ * Not Logged in: redirect to "/login" and return false.<br/>
+ * Logged in : return true
  */
-public class LoginPageInterceptor extends BaseInterceptor {
+public class LoggedInActionInterceptor extends BaseInterceptor {
 
-    public LoginPageInterceptor(ThreadLocal<Long> userID) {
+    public LoggedInActionInterceptor(ThreadLocal<Long> userID) {
         super(userID);
     }
 
@@ -26,10 +26,11 @@ public class LoginPageInterceptor extends BaseInterceptor {
             throws Exception {
 
         if (isLoggedIn()) {
-            response.sendRedirect("/");
-            return false;
+            return true;
         }
-        return true;
+
+        response.sendRedirect("/login");
+        return false;
 
     }
 }

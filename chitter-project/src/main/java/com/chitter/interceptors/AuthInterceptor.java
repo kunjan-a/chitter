@@ -1,4 +1,4 @@
-package com.chitter.controllers;
+package com.chitter.interceptors;
 
 /**
  * Created with IntelliJ IDEA.
