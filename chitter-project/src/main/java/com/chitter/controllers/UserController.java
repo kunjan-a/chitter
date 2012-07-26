@@ -52,7 +52,6 @@ public class UserController {
 
         String msg = "Invalid username/password.";
         String status = "0";
-        long userID;
         try {
             Map<String, Object> userData = db.queryForMap("select id, name, email, password from users where email=?",
                     email);
@@ -93,6 +92,21 @@ public class UserController {
         } catch (DataAccessException e) {
         }
         return ImmutableMap.of("Success", status, "msg", msg);
+    }
+
+
+    @RequestMapping(value = "/request/emailExists", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, String> emailExists(@RequestParam("email") String email,
+                                           HttpSession session) {
+        String isPresent = "1";
+        try {
+            db.queryForMap("select id, name, email, password from users where email=?", email);
+
+        } catch (EmptyResultDataAccessException e) {
+            isPresent = "0";
+        }
+        return ImmutableMap.of("Exists", isPresent);
     }
 
 
