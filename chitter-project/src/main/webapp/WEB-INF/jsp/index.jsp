@@ -3,6 +3,7 @@
 
 Welcome ${name}
 
+<%--
 <c:if test="${not empty sessionScope.userName}">
     <script type="text/javascript">
         window.location = "/test"
@@ -19,3 +20,4 @@ Login:
     pasword: <input type="password" name="password"></br>
     <input type="submit">
 </form>
+--%>
