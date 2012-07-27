@@ -2,9 +2,14 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:choose>
     <c:when test="${not empty sessionScope.userName}">
-        <h1>Welcome ${sessionScope.userName}</h1> <a href="/user/logout">Logout</a>
+        <div id="top">Welcome ${sessionScope.userName} <a href="/logout">Logout</a></div>
     </c:when>
     <c:otherwise>
-        <h1>Please <a href="/user/login">Login</a></h1>
+        <script type="text/javascript" src="/static/js/login.js"></script>
+        <form action="" method="post" onsubmit="doLogin(this);return false;">
+            email: <input type="text" name="email" id="l_email" pretty_name="Email Address">
+            password: <input type="password" name="password" id="l_password" pretty_name="Password">
+            <input type="submit">
+        </form>
     </c:otherwise>
 </c:choose>

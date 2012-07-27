@@ -19,21 +19,10 @@
     </style>
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/underscore.min.js"></script>
+    <script type="text/javascript" src="/static/js/common.js"></script>
+    <script type="text/javascript" src="/static/js/login.js"></script>
+    <script type="text/javascript" src="/static/js/signup.js"></script>
     <script type="text/javascript">
-        var messageBox = "#MsgBox";
-
-        function clearMessageBox() {
-            $(messageBox).html('');
-        }
-
-        function clearErrorInputs() {
-            $(":input").each(function () {
-                if ($(this).hasClass("errorInput")) {
-                    $(this).removeClass("errorInput");
-                }
-            });
-        }
-
         function toggleForms() {
             clearMessageBox();
             clearErrorInputs();
@@ -41,94 +30,6 @@
             $('#loginForm').slideToggle('slow');
         }
 
-        function requiredFieldsFilled(required) {
-            var flag = true;
-            _.each(required, function (inputElementId) {
-                var inputElement = $('#' + inputElementId);
-                if (inputElement.val() == "") {
-                    flag = false;
-                    inputElement.addClass("errorInput");
-                    $('<div>' + inputElement.attr('pretty_name') + ' cannot be blank</div>').hide().appendTo($(messageBox)).show('slow');
-                }
-            })
-            return flag;
-        }
-
-        function validateEmail(emails) {
-            var flag = true;
-            _.each(emails, function (inputElementId) {
-                var inputElement = $('#' + inputElementId);
-                if (!/^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$/.test(inputElement.val())) {
-                    flag = false;
-                    inputElement.addClass("errorInput");
-                    $('<div>Enter a valid email address</div>').hide().appendTo($(messageBox)).show('slow');
-                }
-            })
-            return flag;
-        }
-
-        function Matches(a, b) {
-            var el1 = $("#" + a);
-            var el2 = $("#" + b);
-            if (el1.val() != el2.val()) {
-                $('<div>' + el1.attr('pretty_name') + ' and ' + el2.attr('pretty_name') + ' should match</div>').hide().appendTo($(messageBox)).show('slow');
-                el1.addClass("errorInput");
-                el2.addClass("errorInput");
-                return false;
-            }
-            return true;
-        }
-
-        function validateLogin() {
-            var flag = true;
-            if (!requiredFieldsFilled(["l_password"])) {
-                flag = false;
-            }
-            if (!validateEmail(["l_email"])) {
-                flag = false;
-            }
-            return flag;
-        }
-
-        function doLogin(loginForm) {
-            clearMessageBox();
-            if (validateLogin()) {
-                $.post('/request/login', $(loginForm).serialize(), function (data) {
-                    if (data.Success == 1) {
-                        window.location = "/";
-                    } else {
-                        $('<div>Invalid Email/Password</div>').hide().appendTo($(messageBox)).show('slow');
-                    }
-
-                });
-            }
-        }
-
-        function validateSignUp() {
-            var flag = true;
-            if (!requiredFieldsFilled(["s_name", "s_password", "s_password2"])) {
-                flag = false;
-            }
-
-            if (!validateEmail(["s_email"])) {
-                flag = false;
-            }
-
-            if (!Matches("s_password", "s_password2")) {
-                flag = false
-            }
-
-            return flag;
-        }
-
-        function doRegister(signUpForm) {
-            clearMessageBox();
-            if (validateSignUp()) {
-                $.post('/request/register', $(signUpForm).serialize(), function (data) {
-                    console.log(data);
-                });
-            }
-        }
 
     </script>
 
