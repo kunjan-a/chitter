@@ -2,9 +2,7 @@ var messageBox = "#MsgBox";
 
 function genericValidator(list, test, msg) {
     return _.chain(list)
-        .map(function (inputElementId) {
-            return $('#' + inputElementId);
-        })
+        .map(function (inputElementId) {return $('#' + inputElementId);})
         .filter(test)
         .reduce(function (memo, inputElement) {
             inputElement.addClass("errorInput");
