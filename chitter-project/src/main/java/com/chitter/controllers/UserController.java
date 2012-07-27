@@ -58,7 +58,7 @@ public class UserController {
                 status = "1";
                 msg = "Login successful";
                 session.setAttribute("userName", userData.get("name"));
-                session.setAttribute("userID", Integer.parseInt(String.valueOf(userData.get("id"))));
+                session.setAttribute("userID", String.valueOf(userData.get("id")));
             }
 
         } catch (EmptyResultDataAccessException e) {
@@ -86,7 +86,7 @@ public class UserController {
             status = "1";
             msg = "Registration successful. We trust you so no need to validate the email";
             session.setAttribute("userName", name);
-            session.setAttribute("userID", Integer.parseInt(String.valueOf(userID)));
+            session.setAttribute("userID", String.valueOf(userID));
 
         } catch (DataAccessException e) {
         }
@@ -100,7 +100,7 @@ public class UserController {
                                            HttpSession session) {
         String isPresent = "1";
         try {
-            db.queryForMap("select id, name, email, password from users where email=?", email);
+            db.queryForMap("select id, name, email, password from users where email = ?", email);
 
         } catch (EmptyResultDataAccessException e) {
             isPresent = "0";
