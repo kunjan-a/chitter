@@ -38,8 +38,8 @@ public class TweetStore {
         JdbcOperations jdbcOperations = db.getJdbcOperations();
         // jdbcOperations.
 
-        db.update("insert into tweets (id, time, text, user_id) values(?,?,?,?)", tweetItem.getId(), tweetItem.getTime(), tweetItem.getText(), userID.get());
-        int id = db.queryForInt("select currval('tweets_id_seq');");//CALL IDENTITY()");
+        long id = db.queryForLong("insert into tweets (id, time, text, user_id) values(?,?,?,?)  returning id", tweetItem.getId(), tweetItem.getTime(), tweetItem.getText(), userID.get());
+//        int id = db.queryForInt("select currval('tweets_id_seq');");//CALL IDENTITY()");
         return db.queryForObject("select id, description from tweets where id=?",
                 TweetItem.rowMapper,
                 id);

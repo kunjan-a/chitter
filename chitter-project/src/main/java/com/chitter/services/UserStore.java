@@ -29,8 +29,8 @@ public class UserStore {
 
     public UserItem add(UserItem userItem) {
         try {
-            db.update("insert into users (name, email, password, photo_path) values(?, ?, ?, ?)", userItem.getName(), userItem.getEmail(), userItem.getPassword(), userItem.getPhotoPath());
-            long id = db.queryForLong("select currval('users_id_seq');");
+            long id = db.queryForLong("insert into users (name, email, password, photo_path) values(?, ?, ?, ?) returning id", userItem.getName(), userItem.getEmail(), userItem.getPassword(), userItem.getPhotoPath());
+//            long id = db.queryForLong("select currval('users_id_seq');");
             return getUserWithId(id);
         } catch (DataAccessException e) {
             return null;
