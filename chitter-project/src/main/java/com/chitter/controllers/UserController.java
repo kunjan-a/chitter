@@ -8,15 +8,13 @@ package com.chitter.controllers;
  * To change this template use File | Settings | File Templates.
  */
 
+import com.chitter.model.UserItem;
+import com.chitter.services.UserStore;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -25,12 +23,13 @@ import java.util.Map;
 
 @Controller
 public class UserController {
-    public final SimpleJdbcTemplate db;
+    private final UserStore userStore;
 
     @Autowired
-    public UserController(SimpleJdbcTemplate db) {
-        this.db = db;
+    public UserController(UserStore userStore) {
+        this.userStore = userStore;
     }
+
 
     @RequestMapping("/")
     public ModelAndView index(HttpSession session) {
@@ -44,74 +43,61 @@ public class UserController {
         return "login";
     }
 
+    @RequestMapping(value = "/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/login";
+    }
+
+
     @RequestMapping(value = "/request/login", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, String> login(@RequestParam("email") String email,
-                                     @RequestParam("password") String password,
-                                     HttpSession session) {
+    public Map<String, String> login(UserItem userItem, HttpSession session) {
 
-        String msg = "Invalid username/password.";
-        String status = "0";
-        try {
-            Map<String, Object> userData = db.queryForMap("select id, name, email, password from users where email = ?", email);
-            if (userData.get("password").equals(password)) {
-                status = "1";
-                msg = "Login successful";
-                session.setAttribute("userName", userData.get("name"));
-                session.setAttribute("userID", String.valueOf(userData.get("id")));
-            }
+        String msg, success;
+        userItem = userStore.getUserWithCredentials(userItem);
+        if (userItem != null) {
+            success = "1";
+            msg = "Login successful";
+            session.setAttribute("userName", userItem.getName());
+            session.setAttribute("userID", userItem.getId());
 
-        } catch (EmptyResultDataAccessException e) {
-
+        } else {
+            msg = "Invalid username/password.";
+            success = "0";
         }
-        return ImmutableMap.of("Success", status, "msg", msg);
+        return ImmutableMap.of("Success", success, "msg", msg);
     }
 
 
     @RequestMapping(value = "/request/register", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, String> register(@RequestParam("email") String email,
-                                        @RequestParam("password") String password,
-                                        @RequestParam("name") String name,
-                                        @RequestParam(required = false) String photoPath,
-                                        HttpSession session) {
+    public Map<String, String> register(UserItem userItem, HttpSession session) {
 
-        String msg = "Registration Failed";
-        String status = "0";
-        long userID;
-        try {
-            db.update("insert into users (name, email, password) values(?, ?, ?)", name, email, password);
-            userID = db.queryForLong("select currval('users_id_seq');");//"table_column_seq
+        String msg, success;
 
-            status = "1";
+        UserItem addedUserItem = userStore.add(userItem);
+        if (addedUserItem != null) {
+            success = "1";
             msg = "Registration successful. We trust you so no need to validate the email";
-            session.setAttribute("userName", name);
-            session.setAttribute("userID", String.valueOf(userID));
-
-        } catch (DataAccessException e) {
+            session.setAttribute("userName", addedUserItem.getName());
+            session.setAttribute("userID", addedUserItem.getId());
+        } else {
+            msg = "Registration Failed.";
+            success = "0";
+            if (userStore.getUserWithEmail(userItem) != null)
+                msg += " " + userItem.getEmail() + " is already registered.";
         }
-        return ImmutableMap.of("Success", status, "msg", msg);
+
+        return ImmutableMap.of("Success", success, "msg", msg);
     }
 
 
     @RequestMapping(value = "/request/emailExists", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, String> emailExists(@RequestParam("email") String email,
-                                           HttpSession session) {
-        String isPresent = "1";
-        try {
-            db.queryForMap("select id, name, email, password from users where email = ?", email);
-
-        } catch (EmptyResultDataAccessException e) {
-            isPresent = "0";
-        }
+    public Map<String, String> emailExists(UserItem userItem, HttpSession session) {
+        String isPresent;
+        isPresent = userStore.getUserWithEmail(userItem) != null ? "1" : "0";
         return ImmutableMap.of("Exists", isPresent);
-    }
-
-
-    @RequestMapping(value = "/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
     }
 }
