@@ -11,7 +11,7 @@ function Matches(a, b) {
 
 
 function validateSignUp() {
-    var functionOutputs = [requiredFieldsFilled(["s_name", "s_password", "s_password2"]), validateEmail(["s_email"]), Matches("s_password", "s_password2")];
+    var functionOutputs = [requiredFieldsFilled("s_name", "s_password", "s_password2"), validateEmail(["s_email"]), Matches("s_password", "s_password2")];
     var errorMsg = _.reduce(functionOutputs, function (memo, functionOutput) {
         return memo + functionOutput;
     }, '');

@@ -55,7 +55,7 @@
 <div id="loginForm">
     Login:<br/>
 
-    <form action="" method="post" onsubmit="doLogin(this);return false;">
+    <form action="" method="post" onsubmit="doLogin(this);return false;" autocomplete="on">
         email: <input type="text" name="email" id="l_email" pretty_name="Email Address"><br/>
         password: <input type="password" name="password" id="l_password" pretty_name="Password"><br/>
         <input type="submit">

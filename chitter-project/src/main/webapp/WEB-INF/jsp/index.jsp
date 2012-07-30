@@ -5,13 +5,6 @@
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/underscore.min.js"></script>
     <script type="text/javascript" src="/static/js/common.js"></script>
-    <script>
-        function sendTweet(tweetForm) {
-            $.post('/action/tweet', $(tweetForm).serialize(), function (data) {
-                console.log(data);
-            });
-        }
-    </script>
     <style>
         .blankTweetBox {
             color: #808080;
@@ -21,6 +14,29 @@
             color: black;
         }
     </style>
+    <script type="text/javascript">
+        function sendTweet(tweetForm) {
+            $.post('/test/tweet', $(tweetForm).serialize(), function (data) {
+                $(generateTweetHTML(data.tweetList)).hide().prependTo("#tweetList").show('slow');
+            });
+        }
+
+        var testData = {
+            count : 2,
+            tweetList : [
+                {
+                    id : '1',
+                    name : 'A B',
+                    tweet : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                },
+                {
+                    id : '2',
+                    name : 'C D',
+                    tweet : '1011110000000000011111111111111111111111111'
+                }
+            ]
+        };
+    </script>
 </head>
 <body>
 <%@include file="top.jsp" %>
@@ -31,8 +47,7 @@
 </form>
 <div id="MsgBox">
 </div>
-<div id="tweetFeeds">
-</div>
+<%@include file="tweetList.jsp" %>
 </body>
 <script type="text/javascript">
     $("#tweetBox").focus(function () {
@@ -58,7 +73,6 @@
                 }
             }
     )
-
 </script>
 </html>
 

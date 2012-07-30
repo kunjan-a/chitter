@@ -1,14 +1,28 @@
 var messageBox = "#MsgBox";
 
-function genericValidator(list, test, msg) {
+var tweetTemplateText = '<div class="tweetItem">' +
+    '<div class="tweetedBy"><a href="/users/<%= id %>"><%= name %></a></div>'+
+    '<div class="tweetContent"><%= tweet %></div>'+
+    '</div>';
+
+var compiledTweetTemplate = _.template(tweetTemplateText);
+
+function generateTweetHTML(list){
     return _.chain(list)
-        .map(function (inputElementId) {return $('#' + inputElementId);})
-        .filter(test)
-        .reduce(function (memo, inputElement) {
-            inputElement.addClass("errorInput");
-            return memo + '<div>' + inputElement.attr('pretty_name') + ' ' + msg + '</div>';
-        }, '')
+        .map(compiledTweetTemplate)
+        .reduce(function (memo, el) {return memo + el;}, '')
         .value();
+}
+
+
+function genericValidator() {
+    var msg = this.msg;
+    return _.chain(arguments)//variable arguments indicating ids of the elements to be tested
+            .map(function (inputElementId) {return $('#' + inputElementId);})
+            .filter(this.test)
+            .map(function(inputElement){inputElement.addClass("errorInput");return inputElement;})
+            .reduce(function (memo, inputElement) {return memo + '<div>' + inputElement.attr('pretty_name') + ' ' + msg + '</div>';}, '')
+            .value();
 }
 
 function clearMessageBox() {
@@ -23,22 +37,23 @@ function clearErrorInputs() {
     });
 }
 
-function requiredFieldsFilled(required) {
-    //alert("1");
-    var test = function (inputElement) {
+var requireFieldsTest = {
+    test : function (inputElement) {
         return inputElement.val() == '';
-    };
-    var msg = 'cannot be blank';
-    return genericValidator(required, test, msg);
-}
+    },
+    "msg" : 'cannot be blank'
+};
 
-function validateEmail(emails) {
-    var msg = 'is not a valid one';
-    var test = function (inputElement) {
+requiredFieldsFilled = _.bind(genericValidator,requireFieldsTest);
+
+var validEmailTest = {
+    test : function (inputElement) {
         return !/^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$/.test(inputElement.val());
-    };
-    return genericValidator(emails, test, msg);
-}
+    },
+    "msg" : 'is not a valid one'
+};
+
+var validateEmail = _.bind(genericValidator,validEmailTest);
 
 function showMessage(msg) {
     if (msg != '')
