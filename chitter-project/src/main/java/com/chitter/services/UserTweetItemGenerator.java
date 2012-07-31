@@ -30,7 +30,7 @@ public class UserTweetItemGenerator {
         UserTweetItem userTweetItem = new UserTweetItem();
         userTweetItem.setEvent_id(tweetId);
         userTweetItem.setId(user_tweetId);
-        userTweetItem.setTime(String.valueOf(System.currentTimeMillis()));
+        userTweetItem.setTime(String.valueOf(System.currentTimeMillis()/1000));
 
         return userTweetItem;
     }
