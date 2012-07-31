@@ -5,6 +5,7 @@
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/underscore.min.js"></script>
     <script type="text/javascript" src="/static/js/common.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery-ui-1.8.custom.css">
     <script type="text/javascript">
         var testData = {
             count : 1,
