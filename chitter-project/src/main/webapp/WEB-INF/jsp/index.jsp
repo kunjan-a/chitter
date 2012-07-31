@@ -19,7 +19,7 @@
         function sendTweet(tweetForm) {
             $.post('/action/tweet', $(tweetForm).serialize(), function (data) {
                 console.log(data);
-                $(generateTweetHTML(data.tweetList)).hide().prependTo("#tweetList").show('slow');
+                $(generateTweetHTML(data.response)).hide().prependTo("#tweetList").show('slow');
             });
         }
 

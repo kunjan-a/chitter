@@ -23,7 +23,7 @@
             source: "/search/users",
             focus: function(event, ui) {event.preventDefault();event.stopPropagation();},
             select: function(event,ui){
-                window.location = '/users/'+ui.item.value;
+                window.location = '/user/'+ui.item.value;
             }
 
         });

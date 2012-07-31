@@ -4,7 +4,7 @@
 </div>
 
 <script>
-    $(document).ready(function(){
+    /*$(document).ready(function(){
         $("#tweetList").append(generateTweetHTML(testData.tweetList));
-    });
+    });*/
 </script>

@@ -1,8 +1,8 @@
 var messageBox = "#MsgBox";
 
 var tweetTemplateText = '<div class="tweetItem">' +
-    '<div class="tweetedBy"><a href="/users/<%= id %>"><%= name %></a></div>'+
-    '<div class="tweetContent"><%= tweet %></div>'+
+    '<div class="tweetedBy"><a href="/users/<%= user_id %>"><%= user_id %></a></div>'+
+    '<div class="tweetContent"><%= text %></div>'+
     '</div>';
 
 var compiledTweetTemplate = _.template(tweetTemplateText);
