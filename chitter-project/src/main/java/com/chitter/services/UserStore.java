@@ -38,7 +38,7 @@ public class UserStore {
     }
 
 
-    private UserItem getUserWithId(long id) {
+    public UserItem getUserWithId(long id) {
         try {
             return db.queryForObject("select * from users where id = ?", UserItem.rowMapper, id);
         } catch (EmptyResultDataAccessException e) {
@@ -62,5 +62,9 @@ public class UserStore {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    public boolean userExists(long id) {
+        return (db.queryForInt("select count(*) from users where id=?", id) == 1);
     }
 }

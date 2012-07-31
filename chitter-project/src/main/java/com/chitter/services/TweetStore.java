@@ -52,4 +52,7 @@ public class TweetStore {
     }
 
 
+    public List<TweetItem> fetchTweetsBy(Long id) {
+        return db.query("select * from user_tweets where user_id = ?", TweetItem.rowMapper, id);
+    }
 }

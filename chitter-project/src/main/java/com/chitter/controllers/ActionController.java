@@ -1,13 +1,17 @@
 package com.chitter.controllers;
 
 import com.chitter.model.TweetItem;
+import com.chitter.model.UserItem;
 import com.chitter.services.TweetStore;
+import com.chitter.services.UserStore;
 import com.chitter.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
@@ -23,10 +27,12 @@ import java.util.Map;
 @RequestMapping("action")
 public class ActionController {
     private final TweetStore tweetStore;
+    private final UserStore userStore;
 
     @Autowired
-    public ActionController(TweetStore tweetStore) {
+    public ActionController(TweetStore tweetStore, UserStore userStore) {
         this.tweetStore = tweetStore;
+        this.userStore = userStore;
     }
 
 
@@ -34,6 +40,35 @@ public class ActionController {
     @ResponseBody
     public Map<Object, Object> create(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
         return ResponseUtil.getSuccessfulResponse(tweetStore.add(tweetItem));
+    }
+
+
+    @RequestMapping("fetchTweets/{id}")
+    @ResponseBody
+    public Map<Object, Object> fetchTweets(@PathVariable long id, HttpSession session) {
+        UserItem userItem = userStore.getUserWithId(id);
+        if (userItem != null) {
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.fetchTweetsBy(id));
+            response.put("user", userItem);
+            return response;
+        } else
+            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+    }
+
+    @RequestMapping(value = "/user/{id}")
+    public ModelAndView profileGet(@PathVariable long id) {
+        ModelAndView mv = new ModelAndView("profile");
+        UserItem userItem = userStore.getUserWithId(id);
+        mv.addObject("userexists", userItem != null);
+        if (userItem == null) {
+            userItem = new UserItem();
+            userItem.setId(id);
+        } else
+            mv.addObject(tweetStore.fetchTweetsBy(id));
+
+        mv.addObject("user", userItem);
+
+        return mv;
     }
 
 }
