@@ -1,6 +1,7 @@
 package com.chitter.controllers;
 
 import com.chitter.model.UserItem;
+import com.chitter.services.FollowStore;
 import com.chitter.services.TweetStore;
 import com.chitter.services.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,13 @@ import javax.servlet.http.HttpSession;
 public class ChitterController {
     private final TweetStore tweetStore;
     private final UserStore userStore;
+    private final FollowStore followStore;
 
     @Autowired
-    public ChitterController(TweetStore tweetStore, UserStore userStore) {
+    public ChitterController(TweetStore tweetStore, UserStore userStore, FollowStore followStore) {
         this.tweetStore = tweetStore;
         this.userStore = userStore;
+        this.followStore = followStore;
     }
 
     @RequestMapping("/")
@@ -36,20 +39,22 @@ public class ChitterController {
         return mv;
     }
 
-
     @RequestMapping(value = "/user/{id}")
-    public ModelAndView profileGet(@PathVariable long id) {
+    public ModelAndView profileGet(@PathVariable long id, HttpSession session) {
         ModelAndView mv = new ModelAndView("profile");
         UserItem userItem = userStore.getUserWithId(id);
         mv.addObject("userexists", userItem != null);
         if (userItem == null) {
             userItem = new UserItem();
             userItem.setId(id);
-        } else
+        } else {
             mv.addObject(tweetStore.fetchTweetsBy(id));
+            mv.addObject("Follows", followStore.currentFollows(userItem));
+        }
 
         mv.addObject("user", userItem);
 
         return mv;
     }
+
 }

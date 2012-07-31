@@ -85,13 +85,13 @@ public class UserController {
         return ResponseUtil.getResponse("Exists", isPresent);
     }
 
-    private void signOut(HttpSession session) {
-        session.invalidate();
-    }
-
     private void signIn(UserItem userItem, HttpSession session) {
         session.setAttribute("userName", userItem.getName());
         session.setAttribute("userID", userItem.getId());
+    }
+
+    private void signOut(HttpSession session) {
+        session.invalidate();
     }
 
 

@@ -48,6 +48,10 @@ public abstract class ResponseUtil {
         return getResponse(Success.FAILURE, msg, response);
     }
 
+    public static Map<Object, Object> getSuccessfulResponse() {
+        return getSuccessfulResponse("");
+    }
+
     public enum Success {
         FAILURE, SUCCESSFUL;
 

@@ -28,12 +28,6 @@ public class TweetStore {
         db = template;
     }
 
-    public List<TweetItem> list() {
-        return db.query("select id, description from tweets where user_id=? order by id asc",
-                TweetItem.rowMapper,
-                userID.get());
-    }
-
     public List<TweetItem> add(TweetItem tweetItem) {
         Long currUser = userID.get();
         Assert.notNull(currUser);

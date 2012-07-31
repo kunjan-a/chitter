@@ -2,6 +2,7 @@ package com.chitter.controllers;
 
 import com.chitter.model.TweetItem;
 import com.chitter.model.UserItem;
+import com.chitter.services.FollowStore;
 import com.chitter.services.TweetStore;
 import com.chitter.services.UserStore;
 import com.chitter.utils.ResponseUtil;
@@ -27,11 +28,13 @@ import java.util.Map;
 public class ActionController {
     private final TweetStore tweetStore;
     private final UserStore userStore;
+    private final FollowStore followStore;
 
     @Autowired
-    public ActionController(TweetStore tweetStore, UserStore userStore) {
+    public ActionController(TweetStore tweetStore, UserStore userStore, FollowStore followStore) {
         this.tweetStore = tweetStore;
         this.userStore = userStore;
+        this.followStore = followStore;
     }
 
 
@@ -41,6 +44,28 @@ public class ActionController {
         return ResponseUtil.getSuccessfulResponse(tweetStore.add(tweetItem));
     }
 
+    @RequestMapping("follow")
+    @ResponseBody
+    public Map<Object, Object> follow(@RequestParam long user_id, HttpSession session) {
+        UserItem userItem = userStore.getUserWithId(user_id);
+        if (userItem != null) {
+            if (followStore.follow(userItem))
+                return ResponseUtil.getSuccessfulResponse();
+            else
+                return ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
+        } else
+            return ResponseUtil.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
+    }
+
+    @RequestMapping("unfollow")
+    @ResponseBody
+    public Map<Object, Object> unfollow(@RequestParam long user_id, HttpSession session) {
+        UserItem userItem = userStore.getUserWithId(user_id);
+        if (userItem != null && !followStore.unfollow(userItem))
+            return ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
+
+        return ResponseUtil.getSuccessfulResponse();
+    }
 
     @RequestMapping("fetchTweets/{id}")
     @ResponseBody
