@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
@@ -53,22 +52,6 @@ public class ActionController {
             return response;
         } else
             return ResponseUtil.getFailureResponse("No user exists with id:" + id);
-    }
-
-    @RequestMapping(value = "/user/{id}")
-    public ModelAndView profileGet(@PathVariable long id) {
-        ModelAndView mv = new ModelAndView("profile");
-        UserItem userItem = userStore.getUserWithId(id);
-        mv.addObject("userexists", userItem != null);
-        if (userItem == null) {
-            userItem = new UserItem();
-            userItem.setId(id);
-        } else
-            mv.addObject(tweetStore.fetchTweetsBy(id));
-
-        mv.addObject("user", userItem);
-
-        return mv;
     }
 
 }
