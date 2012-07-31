@@ -21,7 +21,7 @@ public class UserStore {
     public SimpleJdbcTemplate db;
 
     @Autowired
-    public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, SimpleJdbcTemplate template) {
+    public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("simpleJdbcTemplate") SimpleJdbcTemplate template) {
         this.userID = userID;
         db = template;
     }

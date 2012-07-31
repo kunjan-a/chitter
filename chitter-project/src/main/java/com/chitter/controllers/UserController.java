@@ -45,22 +45,19 @@ public class UserController {
 
     @RequestMapping(value = "/logout")
     public String logout(HttpSession session) {
-        session.invalidate();
+        signOut(session);
         return "redirect:/login";
     }
-
 
     @RequestMapping(value = "/request/login", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, String> login(UserItem userItem, HttpSession session) {
-
         String msg, success;
         userItem = userStore.getUserWithCredentials(userItem);
         if (userItem != null) {
             success = "1";
             msg = "Login successful";
-            session.setAttribute("userName", userItem.getName());
-            session.setAttribute("userID", userItem.getId());
+            signIn(userItem, session);
 
         } else {
             msg = "Invalid username/password.";
@@ -80,8 +77,7 @@ public class UserController {
         if (addedUserItem != null) {
             success = "1";
             msg = "Registration successful. We trust you so no need to validate the email";
-            session.setAttribute("userName", addedUserItem.getName());
-            session.setAttribute("userID", addedUserItem.getId());
+            signIn(addedUserItem, session);
         } else {
             msg = "Registration Failed.";
             success = "0";
@@ -100,4 +96,15 @@ public class UserController {
         isPresent = userStore.getUserWithEmail(userItem) != null ? "1" : "0";
         return ImmutableMap.of("Exists", isPresent);
     }
+
+    private void signOut(HttpSession session) {
+        session.invalidate();
+    }
+
+    private void signIn(UserItem userItem, HttpSession session) {
+        session.setAttribute("userName", userItem.getName());
+        session.setAttribute("userID", userItem.getId());
+    }
+
+
 }
