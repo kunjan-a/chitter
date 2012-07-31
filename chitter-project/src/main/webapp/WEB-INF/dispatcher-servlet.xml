@@ -18,7 +18,7 @@
         </mvc:interceptor>
         <mvc:interceptor>
             <mvc:mapping path="/"/>
-            <mvc:mapping path="/*"/>
+            <mvc:mapping path="/**"/>
             <bean class="com.chitter.interceptors.AuthInterceptor"/>
         </mvc:interceptor>
         <mvc:interceptor>
