@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpSession;
+
 /**
  * Created with IntelliJ IDEA.
  * User: kunjan
@@ -27,7 +29,7 @@ public class ActionController {
 
     @RequestMapping("tweet")
     @ResponseBody
-    public TweetItem create(TweetItem tweetItem) {
+    public TweetItem create(TweetItem tweetItem, HttpSession session) {
         return tweetStore.add(tweetItem);
     }
 

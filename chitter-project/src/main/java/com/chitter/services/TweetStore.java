@@ -1,11 +1,12 @@
 package com.chitter.services;
 
 import com.chitter.model.TweetItem;
+import com.chitter.model.UserTweetItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class TweetStore {
     public SimpleJdbcTemplate db;
 
     @Autowired
-    public TweetStore(@Qualifier("userID") ThreadLocal<Long> userID, SimpleJdbcTemplate template) {
+    public TweetStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("simpleJdbcTemplate") SimpleJdbcTemplate template) {
         this.userID = userID;
         db = template;
     }
@@ -34,15 +35,20 @@ public class TweetStore {
     }
 
     public TweetItem add(TweetItem tweetItem) {
-        assert (userID.get() != null);
-        JdbcOperations jdbcOperations = db.getJdbcOperations();
-        // jdbcOperations.
+        Long currUser = userID.get();
+        Assert.notNull(currUser);
 
-        long id = db.queryForLong("insert into tweets (id, time, text, user_id) values(?,?,?,?)  returning id", tweetItem.getId(), tweetItem.getTime(), tweetItem.getText(), userID.get());
-//        int id = db.queryForInt("select currval('tweets_id_seq');");//CALL IDENTITY()");
+
+        UserTweetItem userTweetItem = UserTweetItemGenerator.getNext(db);
+
+        db.update("insert into tweets (id, time, text, user_id) values(?,to_timestamp(?),?,?); " +
+                "insert into user_tweets (id, user_id, event_type, event_id) values(?,?,?,?);",
+                userTweetItem.getEvent_id(), userTweetItem.getTime(), tweetItem.getText(), currUser,
+                userTweetItem.getId(), currUser, UserTweetItem.NEW_TWEET, userTweetItem.getEvent_id());
+
         return db.queryForObject("select id, description from tweets where id=?",
                 TweetItem.rowMapper,
-                id);
+                userTweetItem.getEvent_id());
     }
 
 
