@@ -10,11 +10,12 @@ package com.chitter.controllers;
 
 import com.chitter.model.UserItem;
 import com.chitter.services.UserStore;
-import com.google.common.collect.ImmutableMap;
+import com.chitter.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -51,50 +52,45 @@ public class UserController {
 
     @RequestMapping(value = "/request/login", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, String> login(UserItem userItem, HttpSession session) {
-        String msg, success;
+    public Map<Object, Object> login(@RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) {
         userItem = userStore.getUserWithCredentials(userItem);
-        if (userItem != null) {
-            success = "1";
-            msg = "Login successful";
-            signIn(userItem, session);
 
-        } else {
-            msg = "Invalid username/password.";
-            success = "0";
-        }
-        return ImmutableMap.of("Success", success, "msg", msg);
+        if (userItem != null) {
+            signIn(userItem, session);
+            return ResponseUtil.getSuccessfulResponse("Login successful");
+
+        } else
+            return ResponseUtil.getFailureResponse("Invalid username/password.");
     }
 
 
     @RequestMapping(value = "/request/register", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, String> register(UserItem userItem, HttpSession session) {
-
-        String msg, success;
+    public Map<Object, Object> register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) {
+        Map<Object, Object> response;
 
         UserItem addedUserItem = userStore.add(userItem);
+
         if (addedUserItem != null) {
-            success = "1";
-            msg = "Registration successful. We trust you so no need to validate the email";
+            response = ResponseUtil.getSuccessfulResponse("Registration successful. We trust you so no need to validate the email");
             signIn(addedUserItem, session);
         } else {
-            msg = "Registration Failed.";
-            success = "0";
+            String msg = "Registration Failed.";
             if (userStore.getUserWithEmail(userItem) != null)
                 msg += " " + userItem.getEmail() + " is already registered.";
+            response = ResponseUtil.getFailureResponse(msg);
         }
 
-        return ImmutableMap.of("Success", success, "msg", msg);
+        return response;
     }
 
 
     @RequestMapping(value = "/request/emailExists", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, String> emailExists(UserItem userItem, HttpSession session) {
+    public Map<Object, Object> emailExists(@RequestParam String email, UserItem userItem, HttpSession session) {
         String isPresent;
         isPresent = userStore.getUserWithEmail(userItem) != null ? "1" : "0";
-        return ImmutableMap.of("Exists", isPresent);
+        return ResponseUtil.getResponse("Exists", isPresent);
     }
 
     private void signOut(HttpSession session) {

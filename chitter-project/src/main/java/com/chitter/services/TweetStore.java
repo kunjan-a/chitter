@@ -34,7 +34,7 @@ public class TweetStore {
                 userID.get());
     }
 
-    public TweetItem add(TweetItem tweetItem) {
+    public List<TweetItem> add(TweetItem tweetItem) {
         Long currUser = userID.get();
         Assert.notNull(currUser);
 
@@ -44,9 +44,9 @@ public class TweetStore {
         db.update("insert into tweets (id, time, text, user_id) values(?,to_timestamp(?),?,?); " +
                 "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));",
                 userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()), tweetItem.getText(), currUser,
-                userTweetItem.getId(), currUser, UserTweetItem.NEW_TWEET, userTweetItem.getEvent_id(),Double.valueOf(userTweetItem.getTime()));
+                userTweetItem.getId(), currUser, UserTweetItem.NEW_TWEET, userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
 
-        return db.queryForObject("select * from tweets where id=?",
+        return db.query("select * from tweets where id=?",
                 TweetItem.rowMapper,
                 userTweetItem.getEvent_id());
     }
