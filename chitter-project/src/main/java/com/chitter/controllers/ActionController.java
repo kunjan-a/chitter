@@ -5,6 +5,7 @@ import com.chitter.services.TweetStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
@@ -29,7 +30,7 @@ public class ActionController {
 
     @RequestMapping("tweet")
     @ResponseBody
-    public TweetItem create(TweetItem tweetItem, HttpSession session) {
+    public TweetItem create(@RequestParam String text,TweetItem tweetItem, HttpSession session) {
         return tweetStore.add(tweetItem);
     }
 

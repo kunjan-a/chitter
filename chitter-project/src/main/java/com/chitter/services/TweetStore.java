@@ -42,11 +42,11 @@ public class TweetStore {
         UserTweetItem userTweetItem = UserTweetItemGenerator.getNext(db);
 
         db.update("insert into tweets (id, time, text, user_id) values(?,to_timestamp(?),?,?); " +
-                "insert into user_tweets (id, user_id, event_type, event_id) values(?,?,?,?);",
-                userTweetItem.getEvent_id(), userTweetItem.getTime(), tweetItem.getText(), currUser,
-                userTweetItem.getId(), currUser, UserTweetItem.NEW_TWEET, userTweetItem.getEvent_id());
+                "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));",
+                userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()), tweetItem.getText(), currUser,
+                userTweetItem.getId(), currUser, UserTweetItem.NEW_TWEET, userTweetItem.getEvent_id(),Double.valueOf(userTweetItem.getTime()));
 
-        return db.queryForObject("select id, description from tweets where id=?",
+        return db.queryForObject("select * from tweets where id=?",
                 TweetItem.rowMapper,
                 userTweetItem.getEvent_id());
     }

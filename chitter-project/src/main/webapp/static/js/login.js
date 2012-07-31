@@ -1,5 +1,5 @@
 function validateLogin() {
-    var functionOutputs = [requiredFieldsFilled("l_password"), validateEmail("l_email")];
+    var functionOutputs = [requiredFieldsValidator.validate("l_password"), emailValidator.validate("l_email")];
     var errorMsg = _.reduce(functionOutputs, function (memo, functionOutput) {
         return memo + functionOutput;
     }, '');

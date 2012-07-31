@@ -16,7 +16,8 @@
     </style>
     <script type="text/javascript">
         function sendTweet(tweetForm) {
-            $.post('/test/tweet', $(tweetForm).serialize(), function (data) {
+            $.post('/action/tweet', $(tweetForm).serialize(), function (data) {
+                console.log(data);
                 $(generateTweetHTML(data.tweetList)).hide().prependTo("#tweetList").show('slow');
             });
         }
@@ -41,7 +42,7 @@
 <body>
 <%@include file="top.jsp" %>
 <form action="" method="post" onsubmit="sendTweet(this);return false;">
-    <textarea maxlength="140" name="tweet" id="tweetBox" class="blankTweetBox" rows="2" cols="20">Post new
+    <textarea maxlength="140" name="text" id="tweetBox" class="blankTweetBox" rows="2" cols="20">Post new
         Tweet...</textarea><br/>
     <input type="submit" id="submitButton" disabled="disabled">
 </form>
