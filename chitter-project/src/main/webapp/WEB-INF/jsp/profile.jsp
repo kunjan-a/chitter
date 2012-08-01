@@ -99,7 +99,7 @@
         }
 
         $(document).ready(function(){
-            $.post("/action/fetchTweets/${user.getId()}", {}, function (data) {
+            $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
                 console.log(data);
                 $(generateTweetHTML(data.response)).appendTo("#tweetList");
             });
@@ -133,7 +133,7 @@
 
 <script>
     $(document).ready(function(){
-        $.post("/action/fetchTweets/${user.getId()}", {}, function (data) {
+        $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
             console.log(data);
             if(data.response.length > 0)
             $(generateTweetHTML(data.response)).appendTo("#tweetList");
