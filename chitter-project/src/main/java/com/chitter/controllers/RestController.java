@@ -41,7 +41,31 @@ public class RestController {
     public Map<Object, Object> fetchTweets(@PathVariable long id, HttpSession session) {
         UserItem userItem = userStore.getUserWithId(id);
         if (userItem != null) {
-            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.fetchTweetsBy(id));
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.fetchTweetsBy(userItem));
+            response.put("user", userItem);
+            return response;
+        } else
+            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+    }
+
+    @RequestMapping("{id}/followers")
+    @ResponseBody
+    public Map<Object, Object> followers(@PathVariable long id, HttpSession session) {
+        UserItem userItem = userStore.getUserWithId(id);
+        if (userItem != null) {
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(followStore.listFollowers(userItem));
+            response.put("user", userItem);
+            return response;
+        } else
+            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+    }
+
+    @RequestMapping("{id}/following")
+    @ResponseBody
+    public Map<Object, Object> following(@PathVariable long id, HttpSession session) {
+        UserItem userItem = userStore.getUserWithId(id);
+        if (userItem != null) {
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(followStore.listFollowed(userItem));
             response.put("user", userItem);
             return response;
         } else

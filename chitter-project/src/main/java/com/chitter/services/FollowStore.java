@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: kunjan
@@ -43,5 +45,13 @@ public class FollowStore {
     public boolean unfollow(UserItem userItem) {
         Long currUser = userID.get();
         return db.update("delete from followers where follower_id=? AND celebrity_id=?; delete from following where follower_id=? AND celebrity_id=?;", currUser, userItem.getId(), currUser, userItem.getId()) > 0;
+    }
+
+    public List<UserItem> listFollowers(UserItem userItem) {
+        return db.query("select * from users where id IN (select follower_id from followers where celebrity_id=?);", UserItem.rowMapper, userItem.getId());
+    }
+
+    public List<UserItem> listFollowed(UserItem userItem) {
+        return db.query("select * from users where id IN (select celebrity_id from following where follower_id=?);", UserItem.rowMapper, userItem.getId());
     }
 }

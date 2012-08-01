@@ -8,7 +8,6 @@ import com.chitter.services.UserStore;
 import com.chitter.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -65,18 +64,6 @@ public class ActionController {
             return ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
 
         return ResponseUtil.getSuccessfulResponse();
-    }
-
-    @RequestMapping("fetchTweets/{id}")
-    @ResponseBody
-    public Map<Object, Object> fetchTweets(@PathVariable long id, HttpSession session) {
-        UserItem userItem = userStore.getUserWithId(id);
-        if (userItem != null) {
-            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.fetchTweetsBy(id));
-            response.put("user", userItem);
-            return response;
-        } else
-            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
     }
 
 }

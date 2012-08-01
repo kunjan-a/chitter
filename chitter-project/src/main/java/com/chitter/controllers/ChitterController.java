@@ -48,7 +48,7 @@ public class ChitterController {
             userItem = new UserItem();
             userItem.setId(id);
         } else {
-            mv.addObject(tweetStore.fetchTweetsBy(id));
+            mv.addObject(tweetStore.fetchTweetsBy(userItem));
             mv.addObject("Follows", followStore.currentFollows(userItem));
         }
 

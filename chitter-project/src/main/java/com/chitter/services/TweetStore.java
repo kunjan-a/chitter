@@ -1,6 +1,7 @@
 package com.chitter.services;
 
 import com.chitter.model.TweetItem;
+import com.chitter.model.UserItem;
 import com.chitter.model.UserTweetItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,7 +47,7 @@ public class TweetStore {
     }
 
 
-    public List<TweetItem> fetchTweetsBy(Long id) {
-        return db.query("select * from tweets where user_id = ?", TweetItem.rowMapper, id);
+    public List<TweetItem> fetchTweetsBy(UserItem userItem) {
+        return db.query("select * from tweets where user_id = ?", TweetItem.rowMapper, userItem.getId());
     }
 }
