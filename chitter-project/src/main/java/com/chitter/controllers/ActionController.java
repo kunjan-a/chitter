@@ -39,8 +39,14 @@ public class ActionController {
 
     @RequestMapping("tweet")
     @ResponseBody
-    public Map<Object, Object> create(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
+    public Map<Object, Object> tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
         return ResponseUtil.getSuccessfulResponse(tweetStore.add(tweetItem));
+    }
+
+    @RequestMapping("retweet")
+    @ResponseBody
+    public Map<Object, Object> retweet(@RequestParam long id, TweetItem tweetItem, HttpSession session) {
+        return ResponseUtil.getSuccessfulResponse(tweetStore.retweet(tweetItem));
     }
 
     @RequestMapping("follow")

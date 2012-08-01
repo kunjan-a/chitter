@@ -5,6 +5,7 @@ import com.chitter.model.UserItem;
 import com.chitter.model.UserTweetItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -49,5 +50,33 @@ public class TweetStore {
 
     public List<TweetItem> fetchTweetsBy(UserItem userItem) {
         return db.query("select * from tweets where user_id = ?", TweetItem.rowMapper, userItem.getId());
+    }
+
+    public TweetItem retweet(TweetItem tweetItem) {
+        Long currUser = userID.get();
+        Assert.notNull(currUser);
+
+        try {
+            tweetItem = db.queryForObject("select * from tweets where id=?",
+                    TweetItem.rowMapper,
+                    tweetItem.getId());
+        } catch (DataAccessException e) {
+            return null;
+        }
+
+        UserTweetItem userTweetItem = UserTweetItemGenerator.getNext(db);
+        userTweetItem.setEvent_id(tweetItem.getId());
+        userTweetItem.setUser_id(currUser);
+        userTweetItem.setEvent_type(UserTweetItem.RE_TWEET);
+
+        db.update("update tweets set retweets= (select retweets from tweets where id=?)+1 where id=?;" +
+                "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));",
+                tweetItem.getId(), tweetItem.getId(),
+                userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
+
+        return tweetItem = db.queryForObject("select * from tweets where id=?",
+                TweetItem.rowMapper,
+                tweetItem.getId());
+
     }
 }
