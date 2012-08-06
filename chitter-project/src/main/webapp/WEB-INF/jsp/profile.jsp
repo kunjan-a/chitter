@@ -13,56 +13,22 @@
         }
     </style>
     <script type="text/javascript">
-        var testData = {
-            count : 1,
-            tweetList : [
-                <c:choose>
-                    <c:when test="${user1}">
-                        {
-                            user_id : '1',
-                            name : 'A B',
-                            text : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                        }
-                    </c:when>
-                    <c:otherwise>
-                        {
-                            user_id : '2',
-                            name : 'C D',
-                            text : '1011110000000000011111111111111111111111111'
-                        }
-                    </c:otherwise>
-                </c:choose>
-
-
-            ]
-        };
-
+        var loggedin = ${not empty sessionScope.userName};
         var loggedin_user = "${sessionScope.userID}";
         var profile_user = "${user.getId()}";
-        var follows = ${Follows};
+        var follows = ${follows};
+        var userexists = ${userexists};
     </script>
 </head>
 <body>
 <%@include file="top.jsp" %>
 <div id="MsgBox">
 </div>
+
 <c:choose>
     <c:when test="${userexists}">
         ${user.getName()}'s Page
-        <c:if test="${not empty sessionScope.userName}">
-            <c:if test="${sessionScope.userID != user.getId()}">
-                <button id="followBtn" style="width:100;height:100">
-                    <c:choose>
-                        <c:when test="${Follows}">
-                            Following
-                        </c:when>
-                        <c:otherwise>
-                            Follow
-                        </c:otherwise>
-                    </c:choose>
-                </button>
-            </c:if>
-        </c:if>
+        <button id="followBtn" class="followBtn" style="display: none;">Follow</button>
         <%@include file="tweetList.jsp" %>
     </c:when>
     <c:otherwise>
@@ -70,7 +36,7 @@
     </c:otherwise>
 </c:choose>
 </body>
-<c:if test="${sessionScope.userID != user.getId()}">
+<c:if test="${userexists && sessionScope.userID != user.getId()}">
     <script type="text/javascript">
         function unfollowUser(){
             if(follows)
@@ -99,10 +65,13 @@
         }
 
         $(document).ready(function(){
+            $("#followBtn").html(follows?"Following":"Follow").show();
             $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
                 console.log(data);
                 $(generateTweetHTML(data.response)).appendTo("#tweetList");
             });
+
+
 
             $("#followBtn").click(function(){
                 if(follows){
@@ -131,16 +100,16 @@
     </script>
 </c:if>
 
-<script>
-    $(document).ready(function(){
-        $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
-            console.log(data);
-            if(data.response.length > 0)
-            $(generateTweetHTML(data.response)).appendTo("#tweetList");
+<c:if test="${userexists}">
+    <script>
+        $(document).ready(function(){
+            $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
+                console.log(data);
+                if(data.response.length > 0)
+                    $(generateTweetHTML(data.response)).appendTo("#tweetList");
+            });
         });
-    });
-</script>
-
-
+    </script>
+</c:if>
 </html>
 
