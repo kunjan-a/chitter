@@ -43,11 +43,13 @@ public class ActionController {
         return ResponseUtil.getSuccessfulResponse(tweetStore.add(tweetItem));
     }
 
+
     @RequestMapping("retweet")
     @ResponseBody
     public Map<Object, Object> retweet(@RequestParam long id, TweetItem tweetItem, HttpSession session) {
         return ResponseUtil.getSuccessfulResponse(tweetStore.retweet(tweetItem));
     }
+
 
     @RequestMapping("follow")
     @ResponseBody
@@ -61,6 +63,7 @@ public class ActionController {
         } else
             return ResponseUtil.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
     }
+
 
     @RequestMapping("unfollow")
     @ResponseBody

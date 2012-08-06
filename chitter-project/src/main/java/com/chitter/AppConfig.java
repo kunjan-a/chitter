@@ -24,6 +24,7 @@ public class AppConfig {
         dataSource.setPassword("directi");
         dataSource.setDriverClassName("org.postgresql.Driver");
         SimpleJdbcTemplate db = new SimpleJdbcTemplate(dataSource);
+        db.update("Insert into test (entry) values ('appconfig');");
         return db;
     }
 

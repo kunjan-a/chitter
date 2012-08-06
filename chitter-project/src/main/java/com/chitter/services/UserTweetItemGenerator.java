@@ -10,35 +10,40 @@ package com.chitter.services;
 
 import com.chitter.model.UserTweetItem;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.util.Assert;
 
 public class UserTweetItemGenerator {
-    private Long tweetId, user_tweetId;
+    private Long nextTweetId, nextUser_tweetId;
 
     private static UserTweetItemGenerator instance;
 
 
-    public static synchronized UserTweetItem getNext(SimpleJdbcTemplate db) {
+    public static synchronized UserTweetItemGenerator getInstance(SimpleJdbcTemplate db) {
         if (instance == null)
             instance = new UserTweetItemGenerator(db);
-        return instance.getNextTweetItem();
+        return instance;
     }
 
-    private UserTweetItem getNextTweetItem() {
-        tweetId++;
-        user_tweetId++;
+    public UserTweetItem getNextTweetItem(long tweetid) {
+        Assert.isTrue(tweetid < nextTweetId);
 
         UserTweetItem userTweetItem = new UserTweetItem();
-        userTweetItem.setEvent_id(tweetId);
-        userTweetItem.setId(user_tweetId);
-        userTweetItem.setTime(String.valueOf(System.currentTimeMillis()/1000));
+        userTweetItem.setEvent_id(tweetid);
+        userTweetItem.setId(nextUser_tweetId++);
+        userTweetItem.setTime(String.valueOf(System.currentTimeMillis() / 1000));
 
         return userTweetItem;
     }
 
+    public UserTweetItem getNextTweetItem() {
+        return getNextTweetItem(nextTweetId++);
+    }
+
 
     private UserTweetItemGenerator(SimpleJdbcTemplate db) {
-        tweetId = db.queryForLong("Select max(id) from tweets;");
-        user_tweetId = db.queryForLong(" Select max(id) from user_tweets;");
+        nextTweetId = db.queryForLong("Select max(id) from tweets;") + 1;
+        nextUser_tweetId = db.queryForLong(" Select max(id) from user_tweets;") + 1;
+        db.update("insert into test (entry) values ('userTweetItemGenerator');");
     }
 
 }

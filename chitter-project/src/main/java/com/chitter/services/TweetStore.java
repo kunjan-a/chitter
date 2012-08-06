@@ -35,16 +35,28 @@ public class TweetStore {
         Assert.notNull(currUser);
 
 
-        UserTweetItem userTweetItem = UserTweetItemGenerator.getNext(db);
+        UserTweetItem userTweetItem = UserTweetItemGenerator.getInstance(db).getNextTweetItem();
+        userTweetItem.setUser_id(currUser);
+        userTweetItem.setEvent_type(UserTweetItem.NEW_TWEET);
+
+        tweetItem.setId(userTweetItem.getEvent_id());
+        tweetItem.setUser_id(currUser);
+        tweetItem.setTime(userTweetItem.getTime());
 
         db.update("insert into tweets (id, time, text, user_id) values(?,to_timestamp(?),?,?); " +
                 "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));",
-                userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()), tweetItem.getText(), currUser,
-                userTweetItem.getId(), currUser, UserTweetItem.NEW_TWEET, userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
+                tweetItem.getId(), Double.valueOf(tweetItem.getTime()), tweetItem.getText(), tweetItem.getUser_id(),
+                userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
 
+        return getTweetWithId(userTweetItem.getEvent_id());
+
+
+    }
+
+    private List<TweetItem> getTweetWithId(long tweet_id) {
         return db.query("select * from tweets where id=?",
                 TweetItem.rowMapper,
-                userTweetItem.getEvent_id());
+                tweet_id);
     }
 
 
@@ -52,20 +64,17 @@ public class TweetStore {
         return db.query("select * from tweets where user_id = ?", TweetItem.rowMapper, userItem.getId());
     }
 
-    public TweetItem retweet(TweetItem tweetItem) {
+    public List<TweetItem> retweet(TweetItem tweetItem) {
         Long currUser = userID.get();
         Assert.notNull(currUser);
 
         try {
-            tweetItem = db.queryForObject("select * from tweets where id=?",
-                    TweetItem.rowMapper,
-                    tweetItem.getId());
+            tweetItem = getTweetWithId(tweetItem.getId()).get(0);
         } catch (DataAccessException e) {
             return null;
         }
 
-        UserTweetItem userTweetItem = UserTweetItemGenerator.getNext(db);
-        userTweetItem.setEvent_id(tweetItem.getId());
+        UserTweetItem userTweetItem = UserTweetItemGenerator.getInstance(db).getNextTweetItem(tweetItem.getId());
         userTweetItem.setUser_id(currUser);
         userTweetItem.setEvent_type(UserTweetItem.RE_TWEET);
 
@@ -74,9 +83,7 @@ public class TweetStore {
                 tweetItem.getId(), tweetItem.getId(),
                 userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
 
-        return tweetItem = db.queryForObject("select * from tweets where id=?",
-                TweetItem.rowMapper,
-                tweetItem.getId());
+        return getTweetWithId(tweetItem.getId());
 
     }
 }

@@ -29,8 +29,10 @@ public class UserStore {
 
     public UserItem add(UserItem userItem) {
         try {
-            long id = db.queryForLong("insert into users (name, email, password, photo_path) values(?, ?, ?, ?) returning id", userItem.getName(), userItem.getEmail(), userItem.getPassword(), userItem.getPhotoPath());
-//            long id = db.queryForLong("select currval('users_id_seq');");
+            long id = db.queryForLong("insert into users (name, email, password, photo_path) values(?, ?, ?, ?) " +
+                    "returning id", userItem.getName(), userItem.getEmail(),
+                    userItem.getPassword(), userItem.getPhotoPath());
+
             return getUserWithId(id);
         } catch (DataAccessException e) {
             return null;
@@ -49,7 +51,8 @@ public class UserStore {
 
     public UserItem getUserWithCredentials(UserItem userItem) {
         try {
-            return db.queryForObject("select * from users where email = ? AND password = ?", UserItem.rowMapper, userItem.getEmail(), userItem.getPassword());
+            return db.queryForObject("select * from users where email = ? AND password = ?",
+                    UserItem.rowMapper, userItem.getEmail(), userItem.getPassword());
         } catch (EmptyResultDataAccessException e) {
             return null;
         }

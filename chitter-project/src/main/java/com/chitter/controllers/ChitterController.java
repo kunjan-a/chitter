@@ -49,12 +49,47 @@ public class ChitterController {
             userItem.setId(id);
         } else {
             mv.addObject(tweetStore.fetchTweetsBy(userItem));
-            mv.addObject("Follows", followStore.currentFollows(userItem));
+            mv.addObject("follows", followStore.currentFollows(userItem));
         }
 
         mv.addObject("user", userItem);
 
         return mv;
     }
+
+    @RequestMapping("/user/{id}/followers")
+    public ModelAndView followers(@PathVariable long id, HttpSession session) {
+        ModelAndView mv = new ModelAndView("followers");
+        UserItem userItem = userStore.getUserWithId(id);
+        mv.addObject("userexists", userItem != null);
+        if (userItem == null) {
+            userItem = new UserItem();
+            userItem.setId(id);
+        } else {
+            mv.addObject("followers", followStore.listFollowers(userItem));
+        }
+        mv.addObject("user", userItem);
+
+        return mv;
+
+    }
+
+    @RequestMapping("/user/{id}/following")
+    public ModelAndView following(@PathVariable long id, HttpSession session) {
+        ModelAndView mv = new ModelAndView("following");
+        UserItem userItem = userStore.getUserWithId(id);
+        mv.addObject("userexists", userItem != null);
+        if (userItem == null) {
+            userItem = new UserItem();
+            userItem.setId(id);
+        } else {
+            mv.addObject("following", followStore.listFollowed(userItem));
+        }
+        mv.addObject("user", userItem);
+
+        return mv;
+
+    }
+
 
 }
