@@ -44,9 +44,11 @@ public class TweetStore {
         tweetItem.setTime(userTweetItem.getTime());
 
         db.update("insert into tweets (id, time, text, user_id) values(?,to_timestamp(?),?,?); " +
-                "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));",
+                "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));" +
+                "update users set tweetCount=tweetCount+1 where id=?;",
                 tweetItem.getId(), Double.valueOf(tweetItem.getTime()), tweetItem.getText(), tweetItem.getUser_id(),
-                userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
+                userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()),
+                currUser);
 
         return getTweetWithId(userTweetItem.getEvent_id());
 
@@ -60,7 +62,7 @@ public class TweetStore {
     }
 
 
-    public List<TweetItem> fetchTweetsBy(UserItem userItem) {
+    public List<TweetItem> listTweets(UserItem userItem) {
         return db.query("select * from tweets where user_id = ?", TweetItem.rowMapper, userItem.getId());
     }
 
@@ -78,12 +80,18 @@ public class TweetStore {
         userTweetItem.setUser_id(currUser);
         userTweetItem.setEvent_type(UserTweetItem.RE_TWEET);
 
-        db.update("update tweets set retweets= (select retweets from tweets where id=?)+1 where id=?;" +
-                "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));",
-                tweetItem.getId(), tweetItem.getId(),
-                userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()));
+        db.update("update tweets set retweets=retweets+1 where id=?;" +
+                "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));" +
+                "update users set tweetCount=tweetCount+1 where id=?;",
+                tweetItem.getId(),
+                userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()),
+                currUser);
 
         return getTweetWithId(tweetItem.getId());
 
+    }
+
+    public String listFeeds(UserItem userItem) {
+        return null;
     }
 }

@@ -14,11 +14,35 @@ import java.sql.SQLException;
  */
 public class UserItem {
 
-    private long id;
+    private long id, tweetCount, followerCount, followingCount;
     private String name;
     private String email;
     private String password;
     private String photoPath;
+
+    public long getTweetCount() {
+        return tweetCount;
+    }
+
+    public void setTweetCount(long tweetCount) {
+        this.tweetCount = tweetCount;
+    }
+
+    public long getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(long followerCount) {
+        this.followerCount = followerCount;
+    }
+
+    public long getFollowingCount() {
+        return followingCount;
+    }
+
+    public void setFollowingCount(long followingCount) {
+        this.followingCount = followingCount;
+    }
 
     public static final RowMapper<UserItem> rowMapper = new RowMapper<UserItem>() {
         @Override
@@ -33,6 +57,9 @@ public class UserItem {
         this.email = resultSet.getString("email");
         this.password = resultSet.getString("password");
         this.photoPath = resultSet.getString("photo_path");
+        this.followerCount = resultSet.getLong("followerCount");
+        this.followingCount = resultSet.getLong("followingCount");
+        this.tweetCount = resultSet.getLong("tweetCount");
     }
 
     public UserItem() {

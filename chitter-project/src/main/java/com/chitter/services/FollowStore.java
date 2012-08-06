@@ -40,11 +40,15 @@ public class FollowStore {
     }
 
     public boolean follow(UserItem userItem) {
-        Long currUser = userID.get();
+        Long follower_Id = userID.get();
         try {
+            long celebrity_id = userItem.getId();
             return db.update("insert into followers (follower_id,celebrity_id) values (?,?);" +
-                    "insert into following (follower_id,celebrity_id) values (?,?);",
-                    currUser, userItem.getId(), currUser, userItem.getId()) > 0;
+                    "insert into following (follower_id,celebrity_id) values (?,?);" +
+                    "update users set followerCount=followerCount+1 where id=?;" +
+                    "update users set followingCount=followingCount+1 where id=?;",
+                    follower_Id, celebrity_id, follower_Id, celebrity_id,
+                    celebrity_id, follower_Id) > 0;
         } catch (DuplicateKeyException alreadyFollowingException) {
             return true;
         } catch (DataAccessException e) {
@@ -53,11 +57,15 @@ public class FollowStore {
     }
 
     public boolean unfollow(UserItem userItem) {
-        Long currUser = userID.get();
+        Long follower_id = userID.get();
         try {
+            long celebrity_id = userItem.getId();
             db.update("delete from followers where follower_id=? AND celebrity_id=?; " +
                     "delete from following where follower_id=? AND celebrity_id=?;",
-                    currUser, userItem.getId(), currUser, userItem.getId());
+                    "update users set followerCount=followerCount-1 where id=?;" +
+                            "update users set followingCount=followingCount-1 where id=?;",
+                    follower_id, celebrity_id, follower_id, celebrity_id,
+                    celebrity_id, follower_id);
             return true;
         } catch (DataAccessException e) {
             return false;
