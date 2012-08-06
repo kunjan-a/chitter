@@ -33,7 +33,8 @@ public class LoggedInActionInterceptor extends BaseInterceptor {
             return true;
         }
 
-        response.sendRedirect("/login");
+     //   response.sendRedirect("/login");
+
         return false;
 
     }
