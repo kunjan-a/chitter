@@ -57,9 +57,9 @@ public class UserItem {
         this.email = resultSet.getString("email");
         this.password = resultSet.getString("password");
         this.photoPath = resultSet.getString("photo_path");
-        this.followerCount = resultSet.getLong("followerCount");
-        this.followingCount = resultSet.getLong("followingCount");
-        this.tweetCount = resultSet.getLong("tweetCount");
+        this.followerCount = resultSet.getLong("follower_count");
+        this.followingCount = resultSet.getLong("following_count");
+        this.tweetCount = resultSet.getLong("tweet_count");
     }
 
     public UserItem() {

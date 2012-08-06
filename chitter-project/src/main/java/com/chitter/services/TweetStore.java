@@ -45,7 +45,7 @@ public class TweetStore {
 
         db.update("insert into tweets (id, time, text, user_id) values(?,to_timestamp(?),?,?); " +
                 "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));" +
-                "update users set tweetCount=tweetCount+1 where id=?;",
+                "update users set tweet_count=tweet_count+1 where id=?;",
                 tweetItem.getId(), Double.valueOf(tweetItem.getTime()), tweetItem.getText(), tweetItem.getUser_id(),
                 userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()),
                 currUser);
@@ -82,7 +82,7 @@ public class TweetStore {
 
         db.update("update tweets set retweets=retweets+1 where id=?;" +
                 "insert into user_tweets (id, user_id, event_type, event_id, time) values(?,?,CAST(? AS tweet_type_enum),?,to_timestamp(?));" +
-                "update users set tweetCount=tweetCount+1 where id=?;",
+                "update users set tweet_count=tweet_count+1 where id=?;",
                 tweetItem.getId(),
                 userTweetItem.getId(), userTweetItem.getUser_id(), userTweetItem.getEvent_type(), userTweetItem.getEvent_id(), Double.valueOf(userTweetItem.getTime()),
                 currUser);

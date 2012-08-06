@@ -43,15 +43,18 @@ public class FollowStore {
         Long follower_Id = userID.get();
         try {
             long celebrity_id = userItem.getId();
-            return db.update("insert into followers (follower_id,celebrity_id) values (?,?);" +
+            int result = db.update("insert into followers (follower_id,celebrity_id) values (?,?);" +
                     "insert into following (follower_id,celebrity_id) values (?,?);" +
-                    "update users set followerCount=followerCount+1 where id=?;" +
-                    "update users set followingCount=followingCount+1 where id=?;",
+                    "update users set follower_count=follower_count+1 where id=?;" +
+                    "update users set following_count=following_count+1 where id=?;",
                     follower_Id, celebrity_id, follower_Id, celebrity_id,
-                    celebrity_id, follower_Id) > 0;
+                    celebrity_id, follower_Id);
+            return result > 0;
         } catch (DuplicateKeyException alreadyFollowingException) {
             return true;
         } catch (DataAccessException e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
             return false;
         }
     }
@@ -60,14 +63,16 @@ public class FollowStore {
         Long follower_id = userID.get();
         try {
             long celebrity_id = userItem.getId();
-            db.update("delete from followers where follower_id=? AND celebrity_id=?; " +
-                    "delete from following where follower_id=? AND celebrity_id=?;",
-                    "update users set followerCount=followerCount-1 where id=?;" +
-                            "update users set followingCount=followingCount-1 where id=?;",
+            int result = db.update("delete from followers where follower_id=? AND celebrity_id=?; " +
+                    "delete from following where follower_id=? AND celebrity_id=?;"+
+                    "update users set follower_count=follower_count-1 where id=?;" +
+                    "update users set following_count=following_count-1 where id=?;",
                     follower_id, celebrity_id, follower_id, celebrity_id,
                     celebrity_id, follower_id);
             return true;
         } catch (DataAccessException e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
             return false;
         }
     }

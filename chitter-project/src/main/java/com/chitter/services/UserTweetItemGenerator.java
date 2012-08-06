@@ -43,7 +43,7 @@ public class UserTweetItemGenerator {
     private UserTweetItemGenerator(SimpleJdbcTemplate db) {
         nextTweetId = db.queryForLong("Select max(id) from tweets;") + 1;
         nextUser_tweetId = db.queryForLong(" Select max(id) from user_tweets;") + 1;
-        db.update("insert into test (entry) values ('userTweetItemGenerator');");
+        //db.update("insert into test (entry) values ('userTweetItemGenerator');");
     }
 
 }
