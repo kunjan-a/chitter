@@ -41,7 +41,7 @@ public class RestController {
     public Map<Object, Object> fetchTweets(@PathVariable long id, HttpSession session) {
         UserItem userItem = userStore.getUserWithId(id);
         if (userItem != null) {
-            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.fetchTweetsBy(userItem));
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.listTweets(userItem));
             response.put("user", userItem);
             return response;
         } else
@@ -66,6 +66,18 @@ public class RestController {
         UserItem userItem = userStore.getUserWithId(id);
         if (userItem != null) {
             Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(followStore.listFollowed(userItem));
+            response.put("user", userItem);
+            return response;
+        } else
+            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+    }
+
+    @RequestMapping("{id}/feeds")
+    @ResponseBody
+    public Map<Object, Object> feeds(@PathVariable long id, HttpSession session) {
+        UserItem userItem = userStore.getUserWithId(id);
+        if (userItem != null) {
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.listFeeds(userItem));
             response.put("user", userItem);
             return response;
         } else
