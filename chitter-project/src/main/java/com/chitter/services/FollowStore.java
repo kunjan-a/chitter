@@ -3,6 +3,8 @@ package com.chitter.services;
 import com.chitter.model.UserItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -39,19 +41,36 @@ public class FollowStore {
 
     public boolean follow(UserItem userItem) {
         Long currUser = userID.get();
-        return db.update("insert into followers (follower_id,celebrity_id) values (?,?);insert into following (follower_id,celebrity_id) values (?,?);", currUser, userItem.getId(), currUser, userItem.getId()) > 0;
+        try {
+            return db.update("insert into followers (follower_id,celebrity_id) values (?,?);" +
+                    "insert into following (follower_id,celebrity_id) values (?,?);",
+                    currUser, userItem.getId(), currUser, userItem.getId()) > 0;
+        } catch (DuplicateKeyException alreadyFollowingException) {
+            return true;
+        } catch (DataAccessException e) {
+            return false;
+        }
     }
 
     public boolean unfollow(UserItem userItem) {
         Long currUser = userID.get();
-        return db.update("delete from followers where follower_id=? AND celebrity_id=?; delete from following where follower_id=? AND celebrity_id=?;", currUser, userItem.getId(), currUser, userItem.getId()) > 0;
+        try {
+            db.update("delete from followers where follower_id=? AND celebrity_id=?; " +
+                    "delete from following where follower_id=? AND celebrity_id=?;",
+                    currUser, userItem.getId(), currUser, userItem.getId());
+            return true;
+        } catch (DataAccessException e) {
+            return false;
+        }
     }
 
     public List<UserItem> listFollowers(UserItem userItem) {
-        return db.query("select * from users where id IN (select follower_id from followers where celebrity_id=?);", UserItem.rowMapper, userItem.getId());
+        return db.query("select * from users where id IN (select follower_id from followers where celebrity_id=?);",
+                UserItem.rowMapper, userItem.getId());
     }
 
     public List<UserItem> listFollowed(UserItem userItem) {
-        return db.query("select * from users where id IN (select celebrity_id from following where follower_id=?);", UserItem.rowMapper, userItem.getId());
+        return db.query("select * from users where id IN (select celebrity_id from following where follower_id=?);",
+                UserItem.rowMapper, userItem.getId());
     }
 }
