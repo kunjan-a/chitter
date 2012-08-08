@@ -89,6 +89,9 @@ public class TweetStore {
         String sql = "select event_id from user_tweets where user_id=:" + USER_ID;
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USER_ID, userItem.getId()), UserTweetItem.rowMapper);
 
+        if (userTweetItems.isEmpty())
+            return new ArrayList<FeedItem>();
+
         List<Long> tweetIds = new ArrayList<Long>(userTweetItems.size());
         for (UserTweetItem userTweetItem : userTweetItems) {
             tweetIds.add(userTweetItem.getEvent_id());
@@ -179,8 +182,21 @@ public class TweetStore {
     }
 
     public List<FeedItem> listFeeds(long userId) {
-        String sql = "select event_id from user_tweets where id in (select user_tweet_id from feeds where user_id=:" + USER_ID + ")";
+        String sql = "select user_tweet_id from feeds where user_id=:" + USER_ID;
+        List<Long> userTweetIds = db.query(sql, new MapSqlParameterSource(USER_ID, userId), new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("user_tweet_id");  //To change body of implemented methods use File | Settings | File Templates.
+            }
+        });
+
+        if (userTweetIds.isEmpty())
+            return new ArrayList<FeedItem>();
+
+
+        sql = "select event_id from user_tweets where id in ()";
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USER_ID, userId), UserTweetItem.rowMapper);
+
 
         List<Long> tweetIds = new ArrayList<Long>(userTweetItems.size());
         for (UserTweetItem userTweetItem : userTweetItems) {
