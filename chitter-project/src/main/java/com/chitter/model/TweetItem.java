@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,7 +15,7 @@ import java.sql.SQLException;
  */
 public class TweetItem {
     private long id;
-    private String time;
+    private Timestamp time;
     private String text = "";
     private long user_id;
     private int retweets = 0;
@@ -32,7 +33,7 @@ public class TweetItem {
         user_id = rs.getLong("user_id");
         text = rs.getString("text");
         retweets = rs.getInt("retweets");
-        time = rs.getString("time");
+        time = rs.getTimestamp("time");
     }
 
     public TweetItem() {
@@ -47,11 +48,11 @@ public class TweetItem {
         this.id = id;
     }
 
-    public String getTime() {
+    public Timestamp getTime() {
         return time;
     }
 
-    public void setTime(String time) {
+    public void setTime(Timestamp time) {
         this.time = time;
     }
 

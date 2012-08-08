@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +16,7 @@ import java.sql.SQLException;
 public class UserTweetItem {
 
     private long event_id;
-    private String time;
+    private Timestamp time;
     private long id;
     private String event_type;
     private long user_id;
@@ -35,14 +36,14 @@ public class UserTweetItem {
         user_id = rs.getLong("user_id");
         event_id = rs.getLong("event_id");
         event_type = rs.getString("event_type");
-        time = rs.getString("time");
+        time = rs.getTimestamp("time");
     }
 
     public void setEvent_id(long event_id) {
         this.event_id = event_id;
     }
 
-    public void setTime(String time) {
+    public void setTime(Timestamp time) {
         this.time = time;
     }
 
@@ -70,7 +71,7 @@ public class UserTweetItem {
         return event_id;
     }
 
-    public String getTime() {
+    public Timestamp getTime() {
         return time;
     }
 

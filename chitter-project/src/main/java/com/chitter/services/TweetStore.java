@@ -53,12 +53,12 @@ public class TweetStore {
 
         UserTweetItem userTweetItem = UserTweetItemGenerator.getInstance(db).getNextTweetItem();
 
-        String sql = "insert into tweets (id, time, text, user_id) values(:" + TWEET_ID + ",to_timestamp(:" + TIME + "),:" + TEXT + ",:" + USER_ID + "); " +
-                "insert into user_tweets (id, user_id, event_type, event_id, time) values(:" + USR_TWEET_ID + ",:" + USER_ID + ",CAST(:" + EVENT_TYPE + " AS tweet_type_enum),:" + TWEET_ID + ",to_timestamp(:" + TIME + "));" +
+        String sql = "insert into tweets (id, time, text, user_id) values(:" + TWEET_ID + ",:" + TIME + ",:" + TEXT + ",:" + USER_ID + "); " +
+                "insert into user_tweets (id, user_id, event_type, event_id, time) values(:" + USR_TWEET_ID + ",:" + USER_ID + ",CAST(:" + EVENT_TYPE + " AS tweet_type_enum),:" + TWEET_ID + ",:" + TIME + ");" +
                 "update users set tweet_count=tweet_count+1 where id=:" + USER_ID + ";";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, currUser);
         namedParameters.addValue(TWEET_ID, userTweetItem.getEvent_id());
-        namedParameters.addValue(TIME, Double.valueOf(userTweetItem.getTime()));
+        namedParameters.addValue(TIME, userTweetItem.getTime());
         namedParameters.addValue(TEXT, tweetItem.getText());
         namedParameters.addValue(USR_TWEET_ID, userTweetItem.getId());
         namedParameters.addValue(EVENT_TYPE, TweetEventType.NEW_TWEET.toString());
@@ -126,11 +126,11 @@ public class TweetStore {
         UserTweetItem userTweetItem = UserTweetItemGenerator.getInstance(db).getNextTweetItem(tweetItem.getId());
 
         String sql = "update tweets set retweets=retweets+1 where id=:" + TWEET_ID + ";" +
-                "insert into user_tweets (id, user_id, event_type, event_id, time) values(:" + USR_TWEET_ID + ",:" + USER_ID + ",CAST(:" + EVENT_TYPE + " AS tweet_type_enum),:" + TWEET_ID + ",to_timestamp(" + TIME + "));" +
+                "insert into user_tweets (id, user_id, event_type, event_id, time) values(:" + USR_TWEET_ID + ",:" + USER_ID + ",CAST(:" + EVENT_TYPE + " AS tweet_type_enum),:" + TWEET_ID + ",:" + TIME + ");" +
                 "update users set tweet_count=tweet_count+1 where id=:" + USER_ID + ";";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, currUser);
         namedParameters.addValue(TWEET_ID, tweetItem.getId());
-        namedParameters.addValue(TIME, Double.valueOf(userTweetItem.getTime()));
+        namedParameters.addValue(TIME, userTweetItem.getTime());
         namedParameters.addValue(USR_TWEET_ID, userTweetItem.getId());
         namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET.toString());
 
@@ -146,7 +146,7 @@ public class TweetStore {
     }
 
     private void addFeed(UserTweetItem userTweetItem) {
-        String sql = "insert into feeds (user_id, user_tweet_id, user_tweet_user_id, user_tweet_time) values(:" + USER_ID + "),:" + USR_TWEET_ID + ",:" + USER_ID + ",to_timestamp(:" + TIME + "); ";
+        String sql = "insert into feeds (user_id, user_tweet_id, user_tweet_user_id, user_tweet_time) values(:" + USER_ID + ",:" + USR_TWEET_ID + ",:" + USER_ID + ",:" + TIME + "); ";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, userTweetItem.getUser_id());
         namedParameters.addValue(USR_TWEET_ID, userTweetItem.getId());
         namedParameters.addValue(TIME, userTweetItem.getTime());
@@ -164,7 +164,7 @@ public class TweetStore {
             }
         });
 
-        String sql = "insert into feeds (user_id, user_tweet_id, user_tweet_user_id, user_tweet_time) values(:" + USER_ID + "),:" + USR_TWEET_ID + ",:" + USR_TWEET_USER_ID + ",to_timestamp(:" + TIME + "); ";
+        String sql = "insert into feeds (user_id, user_tweet_id, user_tweet_user_id, user_tweet_time) values(:" + USER_ID + ",:" + USR_TWEET_ID + ",:" + USR_TWEET_USER_ID + ",:" + TIME + "); ";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USR_TWEET_USER_ID, userTweetItem.getUser_id());
         namedParameters.addValue(USR_TWEET_ID, userTweetItem.getId());
         namedParameters.addValue(TIME, userTweetItem.getTime());

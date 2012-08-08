@@ -13,6 +13,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.util.Assert;
 
+import java.sql.Timestamp;
+
 public class UserTweetItemGenerator {
     private Long nextTweetId, nextUser_tweetId;
 
@@ -31,7 +33,7 @@ public class UserTweetItemGenerator {
         UserTweetItem userTweetItem = new UserTweetItem();
         userTweetItem.setEvent_id(tweetid);
         userTweetItem.setId(nextUser_tweetId++);
-        userTweetItem.setTime(String.valueOf(System.currentTimeMillis() / 1000));
+        userTweetItem.setTime(new Timestamp(System.currentTimeMillis()));
 
         return userTweetItem;
     }

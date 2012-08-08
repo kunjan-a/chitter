@@ -1,5 +1,7 @@
 package com.chitter.model;
 
+import java.sql.Timestamp;
+
 /**
  * Created with IntelliJ IDEA.
  * User: kunjan
@@ -30,11 +32,11 @@ public class FeedItem {
         userTweetItem.setEvent_id(id);
     }
 
-    public String getTweetTime() {
+    public Timestamp getTweetTime() {
         return tweetItem.getTime();
     }
 
-    public void setTweetTime(String time) {
+    public void setTweetTime(Timestamp time) {
         tweetItem.setTime(time);
     }
 
@@ -63,7 +65,7 @@ public class FeedItem {
     }
 
 
-    public void setFeedTime(String time) {
+    public void setFeedTime(Timestamp time) {
         userTweetItem.setTime(time);
     }
 
@@ -87,7 +89,7 @@ public class FeedItem {
         userTweetItem.setUser_id(user_id);
     }
 
-    public String getFeedTime() {
+    public Timestamp getFeedTime() {
         return userTweetItem.getTime();
     }
 
