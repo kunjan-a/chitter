@@ -76,5 +76,14 @@
             }
     )
 </script>
+<script>
+    $(document).ready(function(){
+        $.post("/rest/${sessionScope.userID}/feeds/", {}, function (data) {
+            console.log(data);
+            if(data.response.length > 0)
+                $(generateTweetHTML(data.response)).appendTo("#tweetList");
+        });
+    });
+</script>
 </html>
 
