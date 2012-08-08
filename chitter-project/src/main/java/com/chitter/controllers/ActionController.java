@@ -1,5 +1,6 @@
 package com.chitter.controllers;
 
+import com.chitter.model.FeedItem;
 import com.chitter.model.TweetItem;
 import com.chitter.model.UserItem;
 import com.chitter.services.FollowStore;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,39 +42,55 @@ public class ActionController {
     @RequestMapping("tweet")
     @ResponseBody
     public Map<Object, Object> tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
-        return ResponseUtil.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
+        Map<Object, Object> successfulResponse = ResponseUtil.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
+        successfulResponse.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return successfulResponse;
     }
 
 
     @RequestMapping("retweet")
     @ResponseBody
     public Map<Object, Object> retweet(@RequestParam long id, TweetItem tweetItem, HttpSession session) {
-        return ResponseUtil.getSuccessfulResponse(tweetStore.retweet(tweetItem));
+        Map<Object, Object> response;
+        List<FeedItem> retweet = tweetStore.retweet(tweetItem);
+        if (retweet != null)
+            response = ResponseUtil.getSuccessfulResponse(retweet);
+        else
+            response = ResponseUtil.getFailureResponse("Invalid ReTweet Request");
+
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
     }
 
 
     @RequestMapping("follow")
     @ResponseBody
     public Map<Object, Object> follow(@RequestParam long user_id, HttpSession session) {
+        Map<Object, Object> response;
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null) {
             if (followStore.follow(userItem))
-                return ResponseUtil.getSuccessfulResponse();
+                response = ResponseUtil.getSuccessfulResponse();
             else
-                return ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
+                response = ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
         } else
-            return ResponseUtil.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
     }
 
 
     @RequestMapping("unfollow")
     @ResponseBody
     public Map<Object, Object> unfollow(@RequestParam long user_id, HttpSession session) {
+        Map<Object, Object> response;
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null && !followStore.unfollow(userItem))
-            return ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
-
-        return ResponseUtil.getSuccessfulResponse();
+            response = ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
+        else
+            response = ResponseUtil.getSuccessfulResponse();
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
     }
 
 }

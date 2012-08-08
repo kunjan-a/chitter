@@ -1,5 +1,6 @@
 package com.chitter.services;
 
+import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,6 +9,10 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,6 +30,7 @@ public class UserStore {
     private final String PASS = "password";
     private final String PHOTO_PATH = "photo_path";
     private final String USER_ID = "user_id";
+    private final String USER_IDS = "user_ids";
 
     @Autowired
     public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -85,5 +91,22 @@ public class UserStore {
     public boolean userExists(long id) {
         String sql = "select count(*) from users where id=:" + USER_ID;
         return (db.queryForInt(sql, new MapSqlParameterSource(USER_ID, id)) == 1);
+    }
+
+    public List<UserItem> getUserItems(List<FeedItem> feeds) {
+        HashSet<Long> userIds = new HashSet<Long>(feeds.size());
+        for (FeedItem feed : feeds) {
+            userIds.add(feed.getFeedUserId());
+            userIds.add(feed.getTweetUserId());
+        }
+        return getUsersWithIds(userIds);
+    }
+
+
+    public List<UserItem> getUsersWithIds(HashSet<Long> userIds) {
+        if (userIds == null || userIds.isEmpty())
+            return new ArrayList<UserItem>(0);
+        String sql = "select * from users where id in (:" + USER_IDS + ")";
+        return db.query(sql, new MapSqlParameterSource(USER_IDS, userIds), UserItem.rowMapper);
     }
 }

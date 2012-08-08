@@ -1,5 +1,6 @@
 package com.chitter.controllers;
 
+import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
 import com.chitter.services.FollowStore;
 import com.chitter.services.TweetStore;
@@ -42,7 +43,10 @@ public class RestController {
     public Map<Object, Object> fetchTweets(@PathVariable long id, HttpSession session) {
         UserItem userItem = userStore.getUserWithId(id);
         if (userItem != null) {
-            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.listTweets(userItem));
+            List<FeedItem> feeds = tweetStore.listTweets(userItem);
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
+
             response.put("user", userItem);
 
             response.put("follows", followStore.currentFollows(userItem));
@@ -96,7 +100,9 @@ public class RestController {
     public Map<Object, Object> feeds(@PathVariable long id, HttpSession session) {
         UserItem userItem = userStore.getUserWithId(id);
         if (userItem != null) {
-            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.listFeeds(userItem));
+            List<FeedItem> feeds = tweetStore.listFeeds(userItem);
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
             response.put("user", userItem);
 
             response.put("follows", followStore.currentFollows(userItem));

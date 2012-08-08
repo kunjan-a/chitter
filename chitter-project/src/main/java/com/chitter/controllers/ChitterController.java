@@ -1,5 +1,6 @@
 package com.chitter.controllers;
 
+import com.chitter.model.FeedItem;
 import com.chitter.model.FollowItem;
 import com.chitter.model.UserItem;
 import com.chitter.services.FollowStore;
@@ -40,7 +41,10 @@ public class ChitterController {
         ModelAndView mv = new ModelAndView("index");
         mv.addObject("name", session.getAttribute("userName"));
         UserItem userItem = userStore.getUserWithId((Long) session.getAttribute("userID"));
-        mv.addObject("feeds", tweetStore.listFeeds(userItem));
+        List<FeedItem> feeds = tweetStore.listFeeds(userItem);
+        mv.addObject("feeds", feeds);
+
+        mv.addObject("users", userStore.getUserItems(feeds));
         mv.addObject("user", userItem);
         return mv;
     }
@@ -54,7 +58,10 @@ public class ChitterController {
             userItem = new UserItem();
             userItem.setId(id);
         } else {
-            mv.addObject(tweetStore.listTweets(userItem));
+            List<FeedItem> feeds = tweetStore.listTweets(userItem);
+            mv.addObject(feeds);
+
+            mv.addObject("users", userStore.getUserItems(feeds));
             mv.addObject("follows", followStore.currentFollows(userItem));
         }
 
