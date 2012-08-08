@@ -39,6 +39,7 @@ public class TweetStore {
     private final String USR_TWEET_USER_ID = "usr_tweet_user_id";
     private final String TWEET_IDS = "tweet_ids";
     private final String CLBR_ID = "celebrity_id";
+    private final String USR_TWEET_IDS = "user_tweet_ids";
 
     @Autowired
     public TweetStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -86,7 +87,7 @@ public class TweetStore {
 
     public List<FeedItem> listTweets(UserItem userItem) {
         Assert.notNull(userItem);
-        String sql = "select event_id from user_tweets where user_id=:" + USER_ID;
+        String sql = "select * from user_tweets where user_id=:" + USER_ID;
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USER_ID, userItem.getId()), UserTweetItem.rowMapper);
 
         if (userTweetItems.isEmpty())
@@ -194,8 +195,8 @@ public class TweetStore {
             return new ArrayList<FeedItem>();
 
 
-        sql = "select event_id from user_tweets where id in ()";
-        List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USER_ID, userId), UserTweetItem.rowMapper);
+        sql = "select * from user_tweets where id in (:"+USR_TWEET_IDS+")";
+        List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USR_TWEET_IDS, userTweetIds), UserTweetItem.rowMapper);
 
 
         List<Long> tweetIds = new ArrayList<Long>(userTweetItems.size());

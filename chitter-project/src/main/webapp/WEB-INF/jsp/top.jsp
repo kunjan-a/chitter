@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<a href="/">Home</a>
 <c:choose>
     <c:when test="${not empty sessionScope.userName}">
         <div id="top">Welcome ${sessionScope.userName}

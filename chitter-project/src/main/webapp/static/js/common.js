@@ -1,8 +1,8 @@
 var messageBox = "#MsgBox";
 
 var tweetTemplateText = '<div class="tweetItem">' +
-    '<div class="tweetedBy"><a href="/users/<%= user_id %>"><%= user_id %></a></div>'+
-    '<div class="tweetContent"><%= text %></div>'+
+    '<div class="tweetedBy"><a href="/user/<%= tweetUserId %>"><%= tweetUserId %></a></div>'+
+    '<div class="tweetContent"><%= tweetText %></div>'+
     '</div>';
 
 var compiledTweetTemplate = _.template(tweetTemplateText);
@@ -10,6 +10,20 @@ var compiledTweetTemplate = _.template(tweetTemplateText);
 function generateTweetHTML(list){
     return _.chain(list)
         .map(compiledTweetTemplate)
+        .reduce(function (memo, el) {return memo + el;}, '')
+        .value();
+}
+
+var followerTemplateText = '<li class="followerItem">' +
+    '<div class="followerName"><a href="/user/<%= id %>"><%= name %></a>'+
+    '<button id="followBtn" class="followBtn" userid="<%= id %>" follows="<%= follows %>"><% if(id == loggedin_user){ %> Edit Profile <% }else if(follows){ %>Following <% }else{ %>Follow <% } %></button></div>'+
+'</li>';
+
+var followerTemplate = _.template(followerTemplateText);
+
+function generateFollowerHTML(list){
+    return _.chain(list)
+        .map(followerTemplate)
         .reduce(function (memo, el) {return memo + el;}, '')
         .value();
 }

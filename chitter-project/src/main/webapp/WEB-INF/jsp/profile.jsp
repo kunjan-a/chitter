@@ -27,7 +27,7 @@
 
 <c:choose>
     <c:when test="${userexists}">
-        ${user.getName()}'s Page
+        <%@include file="prepareUserInfo.jsp" %>
         <button id="followBtn" class="followBtn" style="display: none;">Follow</button>
         <%@include file="tweetList.jsp" %>
     </c:when>
@@ -36,7 +36,7 @@
     </c:otherwise>
 </c:choose>
 </body>
-<c:if test="${userexists && sessionScope.userID != user.getId()}">
+<c:if test="${not empty sessionScope.userName && userexists && sessionScope.userID != user.getId()}">
     <script type="text/javascript">
         function unfollowUser(){
             if(follows)
