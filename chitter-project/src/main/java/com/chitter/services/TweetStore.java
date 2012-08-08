@@ -50,7 +50,7 @@ public class TweetStore {
                 "update users set tweet_count=tweet_count+1 where id=:" + USER_ID + ";";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, currUser);
         namedParameters.addValue(TWEET_ID, userTweetItem.getEvent_id());
-        namedParameters.addValue(TIME, userTweetItem.getTime());
+        namedParameters.addValue(TIME, Double.valueOf(userTweetItem.getTime()));
         namedParameters.addValue(TEXT, tweetItem.getText());
         namedParameters.addValue(USR_TWEET_ID, userTweetItem.getId());
         namedParameters.addValue(EVENT_TYPE, TweetEventType.NEW_TWEET.toString());
@@ -88,7 +88,7 @@ public class TweetStore {
                 "update users set tweet_count=tweet_count+1 where id=:" + USER_ID + ";";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, currUser);
         namedParameters.addValue(TWEET_ID, tweetItem.getId());
-        namedParameters.addValue(TIME, userTweetItem.getTime());
+        namedParameters.addValue(TIME, Double.valueOf(userTweetItem.getTime()));
         namedParameters.addValue(USR_TWEET_ID, userTweetItem.getId());
         namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET.toString());
 
