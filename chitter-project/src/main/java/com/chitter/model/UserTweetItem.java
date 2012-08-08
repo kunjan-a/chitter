@@ -1,5 +1,10 @@
 package com.chitter.model;
 
+import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  * Created with IntelliJ IDEA.
  * User: kunjan
@@ -9,13 +14,31 @@ package com.chitter.model;
  */
 public class UserTweetItem {
 
-    private Long event_id;
+    private long event_id;
     private String time;
-    private Long id;
+    private long id;
     private String event_type;
-    private Long user_id;
+    private long user_id;
 
-    public void setEvent_id(Long event_id) {
+    public static final RowMapper<UserTweetItem> rowMapper = new RowMapper<UserTweetItem>() {
+        @Override
+        public UserTweetItem mapRow(ResultSet resultSet, int i) throws SQLException {
+            return new UserTweetItem(resultSet);
+        }
+    };
+
+    public UserTweetItem() {
+    }
+
+    public UserTweetItem(ResultSet rs) throws SQLException {
+        id = rs.getLong("id");
+        user_id = rs.getLong("user_id");
+        event_id = rs.getLong("event_id");
+        event_type = rs.getString("event_type");
+        time = rs.getString("time");
+    }
+
+    public void setEvent_id(long event_id) {
         this.event_id = event_id;
     }
 
@@ -23,7 +46,7 @@ public class UserTweetItem {
         this.time = time;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -35,15 +58,15 @@ public class UserTweetItem {
         this.event_type = event_type;
     }
 
-    public Long getUser_id() {
+    public long getUser_id() {
         return user_id;
     }
 
-    public void setUser_id(Long user_id) {
+    public void setUser_id(long user_id) {
         this.user_id = user_id;
     }
 
-    public Long getEvent_id() {
+    public long getEvent_id() {
         return event_id;
     }
 
@@ -51,7 +74,7 @@ public class UserTweetItem {
         return time;
     }
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 

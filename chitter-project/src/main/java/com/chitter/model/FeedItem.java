@@ -16,6 +16,11 @@ public class FeedItem {
         userTweetItem = new UserTweetItem();
     }
 
+    public FeedItem(TweetItem tweetItem, UserTweetItem userTweetItem) {
+        this.tweetItem = tweetItem;
+        this.userTweetItem = userTweetItem;
+    }
+
     public long getTweetId() {
         return tweetItem.getId();
     }

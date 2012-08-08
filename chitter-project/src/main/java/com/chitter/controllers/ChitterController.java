@@ -39,6 +39,9 @@ public class ChitterController {
     public ModelAndView index(HttpSession session) {
         ModelAndView mv = new ModelAndView("index");
         mv.addObject("name", session.getAttribute("userName"));
+        UserItem userItem = userStore.getUserWithId((Long) session.getAttribute("userID"));
+        mv.addObject("feeds", tweetStore.listFeeds(userItem));
+        mv.addObject("user", userItem);
         return mv;
     }
 

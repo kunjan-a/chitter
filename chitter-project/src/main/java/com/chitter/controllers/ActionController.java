@@ -40,7 +40,7 @@ public class ActionController {
     @RequestMapping("tweet")
     @ResponseBody
     public Map<Object, Object> tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
-        return ResponseUtil.getSuccessfulResponse(tweetStore.add(tweetItem));
+        return ResponseUtil.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
     }
 
 
