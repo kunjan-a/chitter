@@ -57,6 +57,9 @@ public class FollowStore {
     }
 
     private List<FollowItem> isFollower(Long follower_id, List<UserItem> followed) {
+        if(followed.isEmpty())
+            return new ArrayList<FollowItem>();
+
         List<Long> celebrityIds = new ArrayList<Long>();
         for (UserItem userItem : followed) {
             celebrityIds.add(userItem.getId());
