@@ -17,7 +17,6 @@ public class UserItem {
     private long id, tweetCount, followerCount, followingCount;
     private String name;
     private String email;
-    private String password;
     private String photoPath;
 
     public long getTweetCount() {
@@ -55,7 +54,6 @@ public class UserItem {
         this.id = resultSet.getLong("id");
         this.name = resultSet.getString("name");
         this.email = resultSet.getString("email");
-        this.password = resultSet.getString("password");
         this.photoPath = resultSet.getString("photo_path");
         this.followerCount = resultSet.getLong("follower_count");
         this.followingCount = resultSet.getLong("following_count");
@@ -87,14 +85,6 @@ public class UserItem {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getPhotoPath() {

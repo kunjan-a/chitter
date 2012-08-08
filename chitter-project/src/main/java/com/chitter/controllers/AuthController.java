@@ -45,7 +45,7 @@ public class AuthController {
     @RequestMapping(value = "/request/login", method = RequestMethod.POST)
     @ResponseBody
     public Map<Object, Object> login(@RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) {
-        userItem = userStore.getUserWithCredentials(userItem);
+        userItem = userStore.getUserWithCredentials(userItem, password);
 
         if (userItem != null) {
             signIn(userItem, session);
@@ -61,7 +61,7 @@ public class AuthController {
     public Map<Object, Object> register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) {
         Map<Object, Object> response;
 
-        UserItem addedUserItem = userStore.add(userItem);
+        UserItem addedUserItem = userStore.add(userItem, password);
 
         if (addedUserItem != null) {
             response = ResponseUtil.getSuccessfulResponse("Registration successful. We trust you so no need to validate the email");

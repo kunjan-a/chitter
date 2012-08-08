@@ -1,6 +1,5 @@
 package com.chitter.controllers;
 
-import com.chitter.model.FollowItem;
 import com.chitter.model.UserItem;
 import com.chitter.services.FollowStore;
 import com.chitter.services.TweetStore;
@@ -45,9 +44,14 @@ public class RestController {
         if (userItem != null) {
             Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.listTweets(userItem));
             response.put("user", userItem);
+
+            response.put("follows", followStore.currentFollows(userItem));
             return response;
-        } else
-            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+        } else {
+            Map<Object, Object> failureResponse = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            failureResponse.put("userexists", userItem != null);
+            return failureResponse;
+        }
     }
 
     @RequestMapping("{id}/followers")
@@ -59,12 +63,14 @@ public class RestController {
             Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(followers);
             response.put("user", userItem);
 
-            List<FollowItem> follows = followStore.currentFollows(followers);
-            response.put("follows", follows);
+            response.put("follows", followStore.currentFollows(followers));
 
             return response;
-        } else
-            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+        } else {
+            Map<Object, Object> failureResponse = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            failureResponse.put("userexists", userItem != null);
+            return failureResponse;
+        }
     }
 
     @RequestMapping("{id}/following")
@@ -76,11 +82,13 @@ public class RestController {
             Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(followed);
             response.put("user", userItem);
 
-            List<FollowItem> follows = followStore.currentFollows(followed);
-            response.put("follows", follows);
+            response.put("follows", followStore.currentFollows(followed));
             return response;
-        } else
-            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+        } else {
+            Map<Object, Object> failureResponse = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            failureResponse.put("userexists", userItem != null);
+            return failureResponse;
+        }
     }
 
     @RequestMapping("{id}/feeds")
@@ -90,9 +98,14 @@ public class RestController {
         if (userItem != null) {
             Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(tweetStore.listFeeds(userItem));
             response.put("user", userItem);
+
+            response.put("follows", followStore.currentFollows(userItem));
             return response;
-        } else
-            return ResponseUtil.getFailureResponse("No user exists with id:" + id);
+        } else {
+            Map<Object, Object> failureResponse = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            failureResponse.put("userexists", userItem != null);
+            return failureResponse;
+        }
     }
 
 }

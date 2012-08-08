@@ -33,13 +33,13 @@ public class UserStore {
     }
 
 
-    public UserItem add(UserItem userItem) {
+    public UserItem add(UserItem userItem, String password) {
         try {
 
             String sql = "insert into users (name, email, password, photo_path) values(:" + NAME + ", :" + EMAIL + ", :" + PASS + ", :" + PHOTO_PATH + ") ";
             MapSqlParameterSource namedParameters = new MapSqlParameterSource(NAME, userItem.getName());
             namedParameters.addValue(EMAIL, userItem.getEmail());
-            namedParameters.addValue(PASS, userItem.getPassword());
+            namedParameters.addValue(PASS, password);
             namedParameters.addValue(PHOTO_PATH, userItem.getPhotoPath());
 
             long id = db.queryForLong(sql + "returning id", namedParameters);
@@ -61,11 +61,11 @@ public class UserStore {
 
     }
 
-    public UserItem getUserWithCredentials(UserItem userItem) {
+    public UserItem getUserWithCredentials(UserItem userItem, String password) {
         try {
             String sql = "select * from users where email = :" + EMAIL + " AND password = :" + PASS;
             MapSqlParameterSource namedParameters = new MapSqlParameterSource(EMAIL, userItem.getEmail());
-            namedParameters.addValue(PASS, userItem.getPassword());
+            namedParameters.addValue(PASS, password);
             return db.queryForObject(sql, namedParameters, UserItem.rowMapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
