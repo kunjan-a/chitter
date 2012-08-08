@@ -9,7 +9,8 @@ package com.chitter.services;
  */
 
 import com.chitter.model.UserTweetItem;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.util.Assert;
 
 public class UserTweetItemGenerator {
@@ -18,7 +19,7 @@ public class UserTweetItemGenerator {
     private static UserTweetItemGenerator instance;
 
 
-    public static synchronized UserTweetItemGenerator getInstance(SimpleJdbcTemplate db) {
+    public static synchronized UserTweetItemGenerator getInstance(NamedParameterJdbcTemplate db) {
         if (instance == null)
             instance = new UserTweetItemGenerator(db);
         return instance;
@@ -40,9 +41,9 @@ public class UserTweetItemGenerator {
     }
 
 
-    private UserTweetItemGenerator(SimpleJdbcTemplate db) {
-        nextTweetId = db.queryForLong("Select max(id) from tweets;") + 1;
-        nextUser_tweetId = db.queryForLong(" Select max(id) from user_tweets;") + 1;
+    private UserTweetItemGenerator(NamedParameterJdbcTemplate db) {
+        nextTweetId = db.queryForLong("Select max(id) from tweets;", (SqlParameterSource) null) + 1;
+        nextUser_tweetId = db.queryForLong(" Select max(id) from user_tweets;", (SqlParameterSource) null) + 1;
         //db.update("insert into test (entry) values ('userTweetItemGenerator');");
     }
 

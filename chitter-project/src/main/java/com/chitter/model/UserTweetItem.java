@@ -29,7 +29,6 @@ public class UserTweetItem {
 
     public String getEvent_type() {
         return event_type;
-
     }
 
     public void setEvent_type(String event_type) {
@@ -44,10 +43,6 @@ public class UserTweetItem {
         this.user_id = user_id;
     }
 
-    public static final String NEW_TWEET = "new";
-    public static final String RE_TWEET = "retweet";
-    public static final String REPLY_TWEET = "reply";
-
     public Long getEvent_id() {
         return event_id;
     }
@@ -59,4 +54,23 @@ public class UserTweetItem {
     public Long getId() {
         return id;
     }
+
+
+    public static enum TweetEventType {
+        NEW_TWEET, RE_TWEET, REPLY_TWEET;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case NEW_TWEET:
+                    return "new";
+                case RE_TWEET:
+                    return "retweet";
+                case REPLY_TWEET:
+                    return "reply";
+            }
+            return super.toString();
+        }
+    }
+
 }

@@ -5,7 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,10 +19,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserStore {
     private final ThreadLocal<Long> userID;
-    public SimpleJdbcTemplate db;
+    public NamedParameterJdbcTemplate db;
+    private final String NAME = "name";
+    private final String EMAIL = "email";
+    private final String PASS = "password";
+    private final String PHOTO_PATH = "photo_path";
+    private final String USER_ID = "user_id";
 
     @Autowired
-    public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("simpleJdbcTemplate") SimpleJdbcTemplate template) {
+    public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
         this.userID = userID;
         db = template;
     }
@@ -29,9 +35,14 @@ public class UserStore {
 
     public UserItem add(UserItem userItem) {
         try {
-            long id = db.queryForLong("insert into users (name, email, password, photo_path) values(?, ?, ?, ?) " +
-                    "returning id", userItem.getName(), userItem.getEmail(),
-                    userItem.getPassword(), userItem.getPhotoPath());
+
+            String sql = "insert into users (name, email, password, photo_path) values(:" + NAME + ", :" + EMAIL + ", :" + PASS + ", :" + PHOTO_PATH + ") ";
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource(NAME, userItem.getName());
+            namedParameters.addValue(EMAIL, userItem.getEmail());
+            namedParameters.addValue(PASS, userItem.getPassword());
+            namedParameters.addValue(PHOTO_PATH, userItem.getPhotoPath());
+
+            long id = db.queryForLong(sql + "returning id", namedParameters);
 
             return getUserWithId(id);
         } catch (DataAccessException e) {
@@ -42,7 +53,8 @@ public class UserStore {
 
     public UserItem getUserWithId(long id) {
         try {
-            return db.queryForObject("select * from users where id = ?", UserItem.rowMapper, id);
+            String sql = "select * from users where id = :" + USER_ID;
+            return db.queryForObject(sql, new MapSqlParameterSource(USER_ID, id), UserItem.rowMapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -51,8 +63,10 @@ public class UserStore {
 
     public UserItem getUserWithCredentials(UserItem userItem) {
         try {
-            return db.queryForObject("select * from users where email = ? AND password = ?",
-                    UserItem.rowMapper, userItem.getEmail(), userItem.getPassword());
+            String sql = "select * from users where email = :" + EMAIL + " AND password = :" + PASS;
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource(EMAIL, userItem.getEmail());
+            namedParameters.addValue(PASS, userItem.getPassword());
+            return db.queryForObject(sql, namedParameters, UserItem.rowMapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -61,13 +75,15 @@ public class UserStore {
 
     public UserItem getUserWithEmail(UserItem userItem) {
         try {
-            return db.queryForObject("select * from users where email = ?", UserItem.rowMapper, userItem.getEmail());
+            String sql = "select * from users where email = :" + EMAIL;
+            return db.queryForObject(sql, new MapSqlParameterSource(EMAIL, userItem.getEmail()), UserItem.rowMapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
 
     public boolean userExists(long id) {
-        return (db.queryForInt("select count(*) from users where id=?", id) == 1);
+        String sql = "select count(*) from users where id=:" + USER_ID;
+        return (db.queryForInt(sql, new MapSqlParameterSource(USER_ID, id)) == 1);
     }
 }

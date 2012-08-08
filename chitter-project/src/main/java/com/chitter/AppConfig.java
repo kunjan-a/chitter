@@ -11,20 +11,20 @@ package com.chitter;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
 public class AppConfig {
 
     @Bean
-    public SimpleJdbcTemplate simpleJdbcTemplate() {
+    NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setUrl("jdbc:postgresql:chitter");      //This database should already exist.
         dataSource.setUsername("postgres");
         dataSource.setPassword("directi");
         dataSource.setDriverClassName("org.postgresql.Driver");
-        SimpleJdbcTemplate db = new SimpleJdbcTemplate(dataSource);
-        //db.update("Insert into test (entry) values ('appconfig');");
+        NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
+
         return db;
     }
 

@@ -9,7 +9,8 @@ package com.chitter.controllers;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,11 +26,11 @@ import java.util.Map;
 @Controller
 public class TestController {
 
-    public SimpleJdbcTemplate db;
+    public NamedParameterJdbcTemplate db;
 
 
     @Autowired
-    public void TestController(SimpleJdbcTemplate db) {
+    public void TestController(NamedParameterJdbcTemplate db) {
         this.db = db;
     }
 
@@ -59,7 +60,11 @@ public class TestController {
     public ArrayList<HashMap<String, String>> searchUsers(@RequestParam String term) {
         String searchTerm = "%" + term + "%";
         ArrayList<HashMap<String, String>> z = new ArrayList<HashMap<String, String>>();
-        List<Map<String, Object>> M = db.queryForList("select name,id from users where name ilike ? limit 10", searchTerm);
+
+        String sql = "select name,id from users where name ilike :searchTerm limit 10";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource("searchTerm", searchTerm);
+        List<Map<String, Object>> M = db.queryForList(sql, namedParameters);
+
         for (Map<String, Object> m : M) {
             HashMap<String, String> a = new HashMap<String, String>();
             a.put("label", (String) m.get("name"));

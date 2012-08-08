@@ -1,5 +1,6 @@
 package com.chitter.controllers;
 
+import com.chitter.model.FollowItem;
 import com.chitter.model.UserItem;
 import com.chitter.services.FollowStore;
 import com.chitter.services.TweetStore;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,6 +26,7 @@ public class ChitterController {
     private final TweetStore tweetStore;
     private final UserStore userStore;
     private final FollowStore followStore;
+
 
     @Autowired
     public ChitterController(TweetStore tweetStore, UserStore userStore, FollowStore followStore) {
@@ -66,7 +69,11 @@ public class ChitterController {
             userItem = new UserItem();
             userItem.setId(id);
         } else {
-            mv.addObject("followers", followStore.listFollowers(userItem));
+            List<UserItem> followers = followStore.listFollowers(userItem);
+            mv.addObject("followers", followers);
+
+            List<FollowItem> follows = followStore.currentFollows(followers);
+            mv.addObject("follows", follows);
         }
         mv.addObject("user", userItem);
 
@@ -83,7 +90,11 @@ public class ChitterController {
             userItem = new UserItem();
             userItem.setId(id);
         } else {
-            mv.addObject("following", followStore.listFollowed(userItem));
+            List<UserItem> followed = followStore.listFollowed(userItem);
+            mv.addObject("following", followed);
+
+            List<FollowItem> follows = followStore.currentFollows(followed);
+            mv.addObject("follows", follows);
         }
         mv.addObject("user", userItem);
 
