@@ -62,8 +62,8 @@ public class FollowStore {
             celebrityIds.add(userItem.getId());
         }
 
-        String sql = "select * from following where follower_id=:" + follower_id + " AND celebrity_id IN :" + CLBRTY_IDS + ";";
-        MapSqlParameterSource namedParameters = new MapSqlParameterSource(this.FLWR_ID, follower_id);
+        String sql = "select * from following where follower_id=:" + FLWR_ID + " AND celebrity_id IN (:" + CLBRTY_IDS + ");";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(FLWR_ID, follower_id);
         namedParameters.addValue(CLBRTY_IDS, celebrityIds);
         return db.query(sql, namedParameters, FollowItem.rowMapper);
     }
