@@ -120,10 +120,14 @@ public class RestController {
     @ResponseBody
     public Map<Object, Object> getFeedItemForTweet(@PathVariable long id, HttpSession session) {
         List<FeedItem> feeds = tweetStore.getFeedsForTweetId(id);
-        Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(feeds);
-        response.put("users", userStore.getUserItems(feeds));
-        response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
-        return response;
+        if (feeds != null) {
+            Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
+            return response;
+        } else {
+            return ResponseUtil.getFailureResponse("No tweet exists with the id:" + id);
+        }
     }
 
 

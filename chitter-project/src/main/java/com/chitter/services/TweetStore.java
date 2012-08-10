@@ -251,6 +251,9 @@ public class TweetStore {
         String sql = "select * from user_tweets where event_id=:" + TWEET_ID;
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(TWEET_ID, tweetId), UserTweetItem.rowMapper);
 
+        if (userTweetItems.isEmpty())
+            return null;
+
         sql = "select * from tweets where id=:" + TWEET_ID;
         List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetId), TweetItem.rowMapper);
 
