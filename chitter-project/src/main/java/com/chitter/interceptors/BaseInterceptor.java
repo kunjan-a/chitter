@@ -23,7 +23,7 @@ public class BaseInterceptor extends HandlerInterceptorAdapter {
     }
 
     protected boolean isLoggedIn() {
-        return userID.get() != null;
+        return userID != null && userID.get() != null;
     }
 
 }

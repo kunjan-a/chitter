@@ -14,7 +14,8 @@ import java.sql.SQLException;
  */
 public class UserItem {
 
-    private long id, tweetCount, followerCount, followingCount;
+    private Long id;
+    private long tweetCount, followerCount, followingCount;
     private String name;
     private String email;
     private String photoPath;
@@ -63,11 +64,11 @@ public class UserItem {
     public UserItem() {
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

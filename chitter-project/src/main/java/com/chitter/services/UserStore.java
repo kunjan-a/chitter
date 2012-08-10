@@ -6,17 +6,24 @@ import com.chitter.security.PasswordFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+import sun.misc.BASE64Encoder;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -37,6 +44,9 @@ public class UserStore {
     private final String USER_ID = "user_id";
     private final String USER_IDS = "user_ids";
     private final PasswordFactory passwdFactory = new PasswordFactory();
+    private final String TOKEN = "token";
+    private final String TIME = "time";
+    private final long DAY_IN_MILLISEC = 24 * 60 * 60 * 1000;
 
     @Autowired
     public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -123,6 +133,57 @@ public class UserStore {
             return new ArrayList<UserItem>(0);
         String sql = "select * from users where id in (:" + USER_IDS + ")";
         return db.query(sql, new MapSqlParameterSource(USER_IDS, userIds), UserItem.rowMapper);
+    }
+
+    public int updatePassword(String password, UserItem userItem) {
+        String sql = "update users set password =:" + PASS + ", scheme =:" + SCHEME + " where id=:" + userItem.getId();
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(SCHEME, passwdFactory.CURRENT_SCHEME);
+        namedParameters.addValue(PASS, passwdFactory.getPasswordManager(passwdFactory.CURRENT_SCHEME).getEncodedPasswd(password, userItem.getEmail()));
+        return db.update(sql, namedParameters);
+    }
+
+    public boolean sendRecoveryInfo(UserItem userItem) {
+
+        String token = null;
+        try {
+            token = new BASE64Encoder().encode(MessageDigest.getInstance("MD5").digest(String.valueOf(System.currentTimeMillis()).getBytes("UTF-8")));
+        } catch (NoSuchAlgorithmException e) {
+            return false;
+        } catch (UnsupportedEncodingException e) {
+            return false;
+        }
+
+        String sql = "insert into recovery (user_id, token) values (:" + USER_ID + ",:" + TOKEN + ")";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, userItem.getId());
+        namedParameters.addValue(TOKEN, token);
+        try {
+            db.update(sql, namedParameters);
+        } catch (DuplicateKeyException duplicateException) {
+            sql = "update recovery set token=:" + TOKEN + ",creation:" + TIME + " where user_id=:" + USER_ID;
+            namedParameters.addValue(TIME, new Timestamp(System.currentTimeMillis()));
+            db.update(sql, namedParameters);
+        }
+        System.out.println("Verification url is localhost:8080/recoverAccount" + token);
+
+        return false;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public UserItem validateAndExpireToken(String recoveryToken) {
+        Map<String, Object> values;
+        try {
+            values = db.queryForMap("select * from recovery where token=:" + TOKEN, new MapSqlParameterSource(TOKEN, recoveryToken));
+        } catch (DataAccessException e) {
+            return null;
+        }
+
+        Timestamp creationTime = (Timestamp) values.get("creation");
+        if (System.currentTimeMillis() - creationTime.getTime() < DAY_IN_MILLISEC) {
+
+        }
+        db.update("delete from recovery where token=:" + TOKEN, new MapSqlParameterSource(TOKEN, recoveryToken));
+        UserItem userItem = db.queryForObject("select * from users where id=:" + USER_ID, new MapSqlParameterSource(USER_ID, values.get("user_id")), UserItem.rowMapper);
+        return userItem;
+
     }
 
     private class UserCredential {
