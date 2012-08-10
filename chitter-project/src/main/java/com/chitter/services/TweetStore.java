@@ -234,10 +234,10 @@ public class TweetStore {
             tweetIds.add(feed.getTweetId());
         }
 
-        String sql = "select event_id from user_tweets where user_id=:" + USR_TWEET_USER_ID + " AND event_type=CAST(:" + EVENT_TYPE + " AS tweet_type_enum) AND event_id in (:" + TWEET_ID + ")";
+        String sql = "select event_id from user_tweets where user_id=:" + USR_TWEET_USER_ID + " AND event_type=CAST(:" + EVENT_TYPE + " AS tweet_type_enum) AND event_id in (:" + TWEET_IDS + ")";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USR_TWEET_USER_ID, userId);
         namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET.toString());
-        namedParameters.addValue(TWEET_ID, tweetIds);
+        namedParameters.addValue(TWEET_IDS, tweetIds);
 
         return db.query(sql, namedParameters, new RowMapper<Long>() {
             @Override
@@ -245,6 +245,27 @@ public class TweetStore {
                 return rs.getLong("event_id");
             }
         });
+    }
+
+    public List<FeedItem> getFeedsForTweetId(long tweetId) {
+        String sql = "select * from user_tweets where event_id=:" + TWEET_ID;
+        List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(TWEET_ID, tweetId), UserTweetItem.rowMapper);
+
+        sql = "select * from tweets where id=:" + TWEET_ID;
+        List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetId), TweetItem.rowMapper);
+
+        List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
+        int tweetIndex = 0;
+        for (int i = 0; i < userTweetItems.size(); i++) {
+            UserTweetItem userTweetItem = userTweetItems.get(i);
+            TweetItem tweetItem = tweetItems.get(tweetIndex);
+            while (userTweetItem.getEvent_id() != tweetItem.getId()) {
+                tweetIndex++;
+                tweetItem = tweetItems.get(tweetIndex);
+            }
+            feeds.add(new FeedItem(tweetItem, userTweetItem));
+        }
+        return feeds;
     }
 }
 
