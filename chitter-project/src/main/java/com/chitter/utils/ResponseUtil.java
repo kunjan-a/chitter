@@ -37,11 +37,11 @@ public abstract class ResponseUtil {
     }
 
     public static Map<Object, Object> getFailureResponse(String msg) {
-        return getSuccessfulResponse(msg, null);
+        return getFailureResponse(msg, null);
     }
 
     public static Map<Object, Object> getFailureResponse(Object response) {
-        return getSuccessfulResponse("", response);
+        return getFailureResponse("", response);
     }
 
     public static Map<Object, Object> getFailureResponse(String msg, Object response) {

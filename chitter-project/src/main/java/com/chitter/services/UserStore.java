@@ -136,8 +136,9 @@ public class UserStore {
     }
 
     public int updatePassword(String password, UserItem userItem) {
-        String sql = "update users set password =:" + PASS + ", scheme =:" + SCHEME + " where id=:" + userItem.getId();
+        String sql = "update users set password =:" + PASS + ", scheme =:" + SCHEME + " where id=:"+USER_ID;
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(SCHEME, passwdFactory.CURRENT_SCHEME);
+        namedParameters.addValue(USER_ID,userItem.getId());
         namedParameters.addValue(PASS, passwdFactory.getPasswordManager(passwdFactory.CURRENT_SCHEME).getEncodedPasswd(password, userItem.getEmail()));
         return db.update(sql, namedParameters);
     }
@@ -159,13 +160,13 @@ public class UserStore {
         try {
             db.update(sql, namedParameters);
         } catch (DuplicateKeyException duplicateException) {
-            sql = "update recovery set token=:" + TOKEN + ",creation:" + TIME + " where user_id=:" + USER_ID;
+            sql = "update recovery set token=:" + TOKEN + ",time=:" + TIME + " where user_id=:" + USER_ID;
             namedParameters.addValue(TIME, new Timestamp(System.currentTimeMillis()));
             db.update(sql, namedParameters);
         }
-        System.out.println("Verification url is localhost:8080/recoverAccount" + token);
+        System.out.println("Verification url is localhost:8080/accountRecovery/" + token);
 
-        return false;  //To change body of created methods use File | Settings | File Templates.
+        return true;  //To change body of created methods use File | Settings | File Templates.
     }
 
     public UserItem validateAndExpireToken(String recoveryToken) {
@@ -176,7 +177,7 @@ public class UserStore {
             return null;
         }
 
-        Timestamp creationTime = (Timestamp) values.get("creation");
+        Timestamp creationTime = (Timestamp) values.get("time");
         if (System.currentTimeMillis() - creationTime.getTime() < DAY_IN_MILLISEC) {
 
         }

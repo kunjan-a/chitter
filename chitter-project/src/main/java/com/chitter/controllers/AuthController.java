@@ -13,10 +13,7 @@ import com.chitter.services.UserStore;
 import com.chitter.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
@@ -41,7 +38,7 @@ public class AuthController {
     @ResponseBody
     public Map<Object, Object> loginForm(@RequestParam String email, UserItem userItem) {
         UserItem requestingUser = userStore.getUserWithEmail(userItem);
-        if (requestingUser != null && !userStore.sendRecoveryInfo(userItem))
+        if (requestingUser != null && !userStore.sendRecoveryInfo(requestingUser))
             return ResponseUtil.getFailureResponse("Some error occurred while sending recovery information to your email id.");
 
         return ResponseUtil.getSuccessfulResponse("Recovery instructions have been mailed to " + email);
@@ -52,21 +49,21 @@ public class AuthController {
         return "forgotPassword";
     }
 
-    @RequestMapping(value = "/accountRecovery", method = RequestMethod.GET)
-    public ModelAndView loginForm(@RequestParam String recoveryToken, HttpSession session) {
+    @RequestMapping(value = "/accountRecovery/{recoveryToken}", method = RequestMethod.GET)
+    public ModelAndView loginForm(@PathVariable String recoveryToken, HttpSession session) {
         ModelAndView mv = new ModelAndView("recoverPassword");
         UserItem userItem = userStore.validateAndExpireToken(recoveryToken);
         if (userItem != null) {
             session.setAttribute("recoveryUserItem", userItem);
-            mv.addObject("valid", 1);
+            mv.addObject("valid", true);
         } else
-            mv.addObject("valid", 0);
+            mv.addObject("valid", false);
         return mv;
     }
 
     @RequestMapping(value = "/resetPasswordByRecovery", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object> resetPassword(@RequestParam String password, HttpSession session) {
+    public Map<Object, Object> resetPassword(@RequestParam String password,@RequestParam String password2, HttpSession session) {
         Map<Object, Object> response;
         UserItem userItem = (UserItem) session.getAttribute("recoveryUserItem");
         if (userItem != null) {
