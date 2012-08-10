@@ -1,7 +1,7 @@
 var messageBox = "#MsgBox";
 
 var tweetTemplateText = '<div class="tweetItem">' +
-    '<div class="tweetedBy"><a href="/user/<%= tweetUserId %>"><%= tweetUserId %></a></div>'+
+    '<div class="tweetedBy"><a href="/user/<%= tweetUserId %>"><%= name %></a></div>'+
     '<div class="tweetContent"><%= tweetText %></div>'+
     '</div>';
 
@@ -30,6 +30,22 @@ function generateFollowerHTML(list){
 
 function clearMessageBox() {
     $(messageBox).html('');
+}
+
+function getUsers(data){
+    var ret = new Object();
+    _.each(data.users,function(o){
+        ret[o["id"]] = o["name"];
+    });
+    ret[data.user["id"]] = data.user["name"];
+    return ret;
+}
+
+function addNames(data){
+    var users = getUsers(data);
+    _.each(data.response,function(tweet){
+        tweet["name"] = users[tweet["tweetUserId"]];
+    });
 }
 
 function genericValidator(){
@@ -68,6 +84,22 @@ function clearErrorInputs() {
 
 function showMessage(msg) {
     if (msg != '')
-        $(msg).hide().appendTo($(messageBox)).slideDown();
+        $('<div>'+msg+'</div>').hide().appendTo($(messageBox)).slideDown();
 }
 
+function showMessageAndClear(msg) {
+    showMessage(msg);
+    window.setTimeout(function(){$(messageBox).html('')},5000);
+}
+
+
+function Matches(a, b) {
+    var el1 = $("#" + a);
+    var el2 = $("#" + b);
+    if (el1.val() != el2.val()) {
+        el1.addClass("errorInput");
+        el2.addClass("errorInput");
+        return '<div>' + el1.attr('pretty_name') + ' and ' + el2.attr('pretty_name') + ' should match</div>';
+    }
+    return '';
+}

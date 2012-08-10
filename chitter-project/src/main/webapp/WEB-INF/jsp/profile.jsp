@@ -66,12 +66,6 @@
 
         $(document).ready(function(){
             $("#followBtn").html(follows?"Following":"Follow").show();
-            $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
-                console.log(data);
-                $(generateTweetHTML(data.response)).appendTo("#tweetList");
-            });
-
-
 
             $("#followBtn").click(function(){
                 if(follows){
@@ -105,6 +99,7 @@
         $(document).ready(function(){
             $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
                 console.log(data);
+                addNames(data);
                 if(data.response.length > 0)
                     $(generateTweetHTML(data.response)).appendTo("#tweetList");
             });

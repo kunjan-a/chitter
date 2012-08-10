@@ -17,27 +17,29 @@
     </style>
     <script type="text/javascript">
         function sendTweet(tweetForm) {
+            $('#submitButton').attr('disabled','disabled');
             $.post('/action/tweet', $(tweetForm).serialize(), function (data) {
                 console.log(data);
-                $(generateTweetHTML(data.response)).hide().prependTo("#tweetList").show('slow');
+                if(data.Success == "1" && data.response.length > 0){
+                    addNames(data);
+                    $(generateTweetHTML(data.response)).hide().prependTo("#tweetList").show('slow');
+                    $('#tweetBox').val('');
+                    $('#tweetBox').trigger('blur');
+                    showMessageAndClear("Tweet successfully posted");
+                }else{
+                    showMessageAndClear("Error Posting Tweet. "+data.msg);
+                }
+
             });
         }
+    </script>
 
-        var testData = {
-            count : 2,
-            tweetList : [
-                {
-                    id : '1',
-                    name : 'A B',
-                    tweet : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                },
-                {
-                    id : '2',
-                    name : 'C D',
-                    tweet : '1011110000000000011111111111111111111111111'
-                }
-            ]
-        };
+    <script>
+        function resetTweetBox(){
+            $('#tweetBox').val('Post new Tweet...');
+            $('#tweetBox').addClass("blankTweetBox");
+            $('#submitButton').attr('disabled','disabled');
+        }
     </script>
 </head>
 <body>
@@ -45,7 +47,8 @@
 <form action="" method="post" onsubmit="sendTweet(this);return false;">
     <textarea maxlength="140" name="text" id="tweetBox" class="blankTweetBox" rows="2" cols="20">Post new
         Tweet...</textarea><br/>
-    <input type="submit" id="submitButton" disabled="disabled">
+    <input type="submit" id="submitButton" disabled="disabled"><br/>
+    <span id="textCount">0</span>/140 Characters used.
 </form>
 <div id="MsgBox">
 </div>
@@ -75,11 +78,16 @@
                 }
             }
     )
+
+    $('#tweetBox').keyup(function(){
+        $("#textCount").html($(this).val().length);
+    });
 </script>
 <script>
     $(document).ready(function(){
         $.post("/rest/${sessionScope.userID}/feeds/", {}, function (data) {
             console.log(data);
+            addNames(data);
             if(data.response.length > 0)
                 $(generateTweetHTML(data.response)).appendTo("#tweetList");
         });
