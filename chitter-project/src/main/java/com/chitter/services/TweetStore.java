@@ -236,7 +236,7 @@ public class TweetStore {
 
         String sql = "select event_id from user_tweets where user_tweet_user_id=:" + USR_TWEET_USER_ID + " AND event_type=CAST(:" + EVENT_TYPE + " AS tweet_type_enum) AND event_id in (:" + TWEET_ID + ")";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USR_TWEET_USER_ID, userId);
-        namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET);
+        namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET.toString());
         namedParameters.addValue(TWEET_ID, tweetIds);
 
         return db.query(sql, namedParameters, new RowMapper<Long>() {
