@@ -17,6 +17,7 @@ import org.springframework.util.Assert;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -195,7 +196,7 @@ public class TweetStore {
             return new ArrayList<FeedItem>();
 
 
-        sql = "select * from user_tweets where id in (:"+USR_TWEET_IDS+")";
+        sql = "select * from user_tweets where id in (:" + USR_TWEET_IDS + ")";
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USR_TWEET_IDS, userTweetIds), UserTweetItem.rowMapper);
 
 
@@ -218,6 +219,32 @@ public class TweetStore {
             feeds.add(new FeedItem(tweetItem, userTweetItem));
         }
         return feeds;
+    }
+
+    public List<Long> retweetedByCurrent(List<FeedItem> feeds) {
+        return retweetedByCurrent(userID.get(), feeds);
+    }
+
+    private List<Long> retweetedByCurrent(Long userId, List<FeedItem> feeds) {
+        if (userId == null || feeds == null || feeds.isEmpty())
+            return new ArrayList<Long>(0);
+
+        HashSet<Long> tweetIds = new HashSet<Long>();
+        for (FeedItem feed : feeds) {
+            tweetIds.add(feed.getTweetId());
+        }
+
+        String sql = "select event_id from user_tweets where user_tweet_user_id=:" + USR_TWEET_USER_ID + " AND event_type=CAST(:" + EVENT_TYPE + " AS tweet_type_enum) AND event_id in (:" + TWEET_ID + ")";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(USR_TWEET_USER_ID, userId);
+        namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET);
+        namedParameters.addValue(TWEET_ID, tweetIds);
+
+        return db.query(sql, namedParameters, new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("event_id");
+            }
+        });
     }
 }
 

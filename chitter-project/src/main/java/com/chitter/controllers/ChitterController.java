@@ -63,6 +63,7 @@ public class ChitterController {
 
             mv.addObject("users", userStore.getUserItems(feeds));
             mv.addObject("follows", followStore.currentFollows(userItem));
+            mv.addObject("retweeted", tweetStore.retweetedByCurrent(feeds));
         }
 
         mv.addObject("user", userItem);

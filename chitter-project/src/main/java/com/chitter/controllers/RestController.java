@@ -50,6 +50,7 @@ public class RestController {
             response.put("user", userItem);
 
             response.put("follows", followStore.currentFollows(userItem));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
             return response;
         } else {
             Map<Object, Object> failureResponse = ResponseUtil.getFailureResponse("No user exists with id:" + id);
@@ -106,6 +107,7 @@ public class RestController {
             response.put("user", userItem);
 
             response.put("follows", followStore.currentFollows(userItem));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
             return response;
         } else {
             Map<Object, Object> failureResponse = ResponseUtil.getFailureResponse("No user exists with id:" + id);
