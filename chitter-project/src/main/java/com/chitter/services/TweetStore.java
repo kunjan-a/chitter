@@ -16,9 +16,7 @@ import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -101,6 +99,20 @@ public class TweetStore {
         sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
         List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
 
+        Collections.sort(userTweetItems,new Comparator<UserTweetItem>() {
+            @Override
+            public int compare(UserTweetItem userTweetItem, UserTweetItem userTweetItem1) {
+                return userTweetItem.getEvent_id() > userTweetItem1.getEvent_id()?1:-1;
+            }
+        });
+
+        Collections.sort(tweetItems,new Comparator<TweetItem>() {
+            @Override
+            public int compare(TweetItem tweetItem, TweetItem tweetItem1) {
+                return tweetItem.getId()>tweetItem1.getId()?1:-1;
+            }
+        });
+
         List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
         Assert.isTrue(tweetIds.size() == userTweetItems.size());
         for (int i = 0; i < userTweetItems.size(); i++) {
@@ -138,9 +150,9 @@ public class TweetStore {
 
         db.update(sql, namedParameters);
 
-        addFeed(userTweetItem);
         TweetItem addedTweetItem = getTweetWithId(userTweetItem.getEvent_id());
         UserTweetItem addedUserTweetItem = getUserTweetWithId(userTweetItem.getId());
+        addFeed(addedUserTweetItem);
         FeedItem addedFeedItem = new FeedItem(addedTweetItem, addedUserTweetItem);
         List<FeedItem> feeds = new ArrayList<FeedItem>(1);
         feeds.add(addedFeedItem);
@@ -207,6 +219,20 @@ public class TweetStore {
         sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
         List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
 
+        Collections.sort(userTweetItems,new Comparator<UserTweetItem>() {
+            @Override
+            public int compare(UserTweetItem userTweetItem, UserTweetItem userTweetItem1) {
+                return userTweetItem.getEvent_id()>userTweetItem1.getEvent_id()?1:-1;
+            }
+        });
+
+        Collections.sort(tweetItems,new Comparator<TweetItem>() {
+            @Override
+            public int compare(TweetItem tweetItem, TweetItem tweetItem1) {
+                return tweetItem.getId() > tweetItem1.getId()?1:-1;
+            }
+        });
+
         List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
         int tweetIndex = 0;
         for (int i = 0; i < userTweetItems.size(); i++) {
@@ -255,7 +281,7 @@ public class TweetStore {
             return null;
 
         sql = "select * from tweets where id=:" + TWEET_ID;
-        List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetId), TweetItem.rowMapper);
+        List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_ID, tweetId), TweetItem.rowMapper);
 
         List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
         int tweetIndex = 0;
