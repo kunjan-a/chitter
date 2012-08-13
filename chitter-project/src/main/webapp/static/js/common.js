@@ -3,6 +3,7 @@ var messageBox = "#MsgBox";
 var tweetTemplateText = '<div class="tweetItem">' +
     '<div class="tweetedBy"><a href="/user/<%= tweetUserId %>"><%= name %></a></div>'+
     '<div class="tweetContent"><%= tweetText %></div>'+
+    '<div class="timeStamp"><%= time %></div>'+
     '</div>';
 
 var compiledTweetTemplate = _.template(tweetTemplateText);
@@ -102,4 +103,22 @@ function Matches(a, b) {
         return '<div>' + el1.attr('pretty_name') + ' and ' + el2.attr('pretty_name') + ' should match</div>';
     }
     return '';
+}
+
+function addTimes(tweets){
+
+    _.each(tweets,function(tweet){
+        var a = new Date(tweet['feedTime']);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var year = a.getFullYear();
+        var month = months[a.getMonth()];
+        var date = a.getDate();
+        var hour = a.getHours();
+        var min = a.getMinutes();
+        var sec = a.getSeconds();
+        var time = date+','+month+' '+year+' '+hour+':'+min+':'+sec ;
+
+        tweet['time'] = time;
+    });
+
 }

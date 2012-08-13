@@ -100,6 +100,7 @@
             $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
                 console.log(data);
                 addNames(data);
+                addTimes(data.response);
                 if(data.response.length > 0)
                     $(generateTweetHTML(data.response)).appendTo("#tweetList");
             });
