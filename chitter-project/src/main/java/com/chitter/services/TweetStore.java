@@ -99,17 +99,17 @@ public class TweetStore {
         sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
         List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
 
-        Collections.sort(userTweetItems,new Comparator<UserTweetItem>() {
+        Collections.sort(userTweetItems, new Comparator<UserTweetItem>() {
             @Override
             public int compare(UserTweetItem userTweetItem, UserTweetItem userTweetItem1) {
-                return userTweetItem.getEvent_id() > userTweetItem1.getEvent_id()?1:-1;
+                return userTweetItem.getEvent_id() > userTweetItem1.getEvent_id() ? 1 : -1;
             }
         });
 
-        Collections.sort(tweetItems,new Comparator<TweetItem>() {
+        Collections.sort(tweetItems, new Comparator<TweetItem>() {
             @Override
             public int compare(TweetItem tweetItem, TweetItem tweetItem1) {
-                return tweetItem.getId()>tweetItem1.getId()?1:-1;
+                return tweetItem.getId() > tweetItem1.getId() ? 1 : -1;
             }
         });
 
@@ -134,13 +134,14 @@ public class TweetStore {
             return null;
         }
 
-        if (tweetItem.getUser_id() == currUser)
+        if (tweetItem.getUser_id() == currUser || retweetedBy(currUser, tweetItem) == null)
             return null;
 
         UserTweetItem userTweetItem = UserTweetItemGenerator.getInstance(db).getNextTweetItem(tweetItem.getId());
 
         String sql = "update tweets set retweets=retweets+1 where id=:" + TWEET_ID + ";" +
                 "insert into user_tweets (id, user_id, event_type, event_id, time) values(:" + USR_TWEET_ID + ",:" + USER_ID + ",CAST(:" + EVENT_TYPE + " AS tweet_type_enum),:" + TWEET_ID + ",:" + TIME + ");" +
+                "insert into retweets (tweet_id, user_id) values( :" + TWEET_ID + ",:" + USER_ID + ")" +
                 "update users set tweet_count=tweet_count+1 where id=:" + USER_ID + ";";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, currUser);
         namedParameters.addValue(TWEET_ID, tweetItem.getId());
@@ -219,17 +220,17 @@ public class TweetStore {
         sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
         List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
 
-        Collections.sort(userTweetItems,new Comparator<UserTweetItem>() {
+        Collections.sort(userTweetItems, new Comparator<UserTweetItem>() {
             @Override
             public int compare(UserTweetItem userTweetItem, UserTweetItem userTweetItem1) {
-                return userTweetItem.getEvent_id()>userTweetItem1.getEvent_id()?1:-1;
+                return userTweetItem.getEvent_id() > userTweetItem1.getEvent_id() ? 1 : -1;
             }
         });
 
-        Collections.sort(tweetItems,new Comparator<TweetItem>() {
+        Collections.sort(tweetItems, new Comparator<TweetItem>() {
             @Override
             public int compare(TweetItem tweetItem, TweetItem tweetItem1) {
-                return tweetItem.getId() > tweetItem1.getId()?1:-1;
+                return tweetItem.getId() > tweetItem1.getId() ? 1 : -1;
             }
         });
 
@@ -248,10 +249,10 @@ public class TweetStore {
     }
 
     public List<Long> retweetedByCurrent(List<FeedItem> feeds) {
-        return retweetedByCurrent(userID.get(), feeds);
+        return retweetedBy(userID.get(), feeds);
     }
 
-    private List<Long> retweetedByCurrent(Long userId, List<FeedItem> feeds) {
+    private List<Long> retweetedBy(Long userId, List<FeedItem> feeds) {
         if (userId == null || feeds == null || feeds.isEmpty())
             return new ArrayList<Long>(0);
 
@@ -260,9 +261,12 @@ public class TweetStore {
             tweetIds.add(feed.getTweetId());
         }
 
-        String sql = "select event_id from user_tweets where user_id=:" + USR_TWEET_USER_ID + " AND event_type=CAST(:" + EVENT_TYPE + " AS tweet_type_enum) AND event_id in (:" + TWEET_IDS + ")";
+        return retweetedBy(userId, tweetIds);
+    }
+
+    private List<Long> retweetedBy(Long userId, HashSet<Long> tweetIds) {
+        String sql = "select tweet_id from retweets where user_id=:" + USR_TWEET_USER_ID + " AND event_id in (:" + TWEET_IDS + ")";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USR_TWEET_USER_ID, userId);
-        namedParameters.addValue(EVENT_TYPE, TweetEventType.RE_TWEET.toString());
         namedParameters.addValue(TWEET_IDS, tweetIds);
 
         return db.query(sql, namedParameters, new RowMapper<Long>() {
@@ -271,6 +275,12 @@ public class TweetStore {
                 return rs.getLong("event_id");
             }
         });
+    }
+
+    private List<Long> retweetedBy(Long currUser, TweetItem tweetItem) {
+        final HashSet<Long> tweetIds = new HashSet<Long>(1);
+        tweetIds.add(tweetItem.getId());
+        return retweetedBy(currUser, tweetIds);
     }
 
     public List<FeedItem> getFeedsForTweetId(long tweetId) {
