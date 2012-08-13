@@ -18,7 +18,8 @@ public class UserItem {
     private long tweetCount, followerCount, followingCount;
     private String name;
     private String email;
-    private String photoPath;
+    public static final String PROFILE_PIC_PATH = "/static/images/user/";
+    public static final String DEFAULT_PROFILE_PIC = PROFILE_PIC_PATH + "default.jpg";
 
     public long getTweetCount() {
         return tweetCount;
@@ -55,7 +56,6 @@ public class UserItem {
         this.id = resultSet.getLong("id");
         this.name = resultSet.getString("name");
         this.email = resultSet.getString("email");
-        this.photoPath = resultSet.getString("photo_path");
         this.followerCount = resultSet.getLong("follower_count");
         this.followingCount = resultSet.getLong("following_count");
         this.tweetCount = resultSet.getLong("tweet_count");
@@ -89,10 +89,7 @@ public class UserItem {
     }
 
     public String getPhotoPath() {
-        return photoPath;
+        return id != null ? PROFILE_PIC_PATH + id + ".jpg" : DEFAULT_PROFILE_PIC;
     }
 
-    public void setPhotoPath(String photoPath) {
-        this.photoPath = photoPath;
-    }
 }

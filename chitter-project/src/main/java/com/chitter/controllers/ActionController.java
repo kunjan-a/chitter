@@ -10,10 +10,13 @@ import com.chitter.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +41,18 @@ public class ActionController {
         this.followStore = followStore;
     }
 
+
+    @RequestMapping(value = "/uploadProfilePic", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<Object, Object> handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session) throws IOException {
+        UserItem useritem = userStore.getUserWithId((Long) session.getAttribute("userID"));
+        if (!picFile.isEmpty()) {
+            userStore.storeProfilePic(useritem, picFile);
+            return ResponseUtil.getSuccessfulResponse("Image uploaded successfully.");
+        } else {
+            return ResponseUtil.getFailureResponse("Opps!, there was an error in image upload. Please try again.");
+        }
+    }
 
     @RequestMapping("tweet")
     @ResponseBody

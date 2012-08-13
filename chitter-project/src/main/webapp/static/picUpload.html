@@ -1,0 +1,16 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Upload a file please</title>
+</head>
+<body>
+<!--Vaka make sure the value of action and the "name" for the input type "file" is not changed because server is relying on them. Rest everything you can change.-->
+<h1>Please upload a file</h1>
+
+<form method="post" action="/action/uploadProfilePic" enctype="multipart/form-data">
+    <input type="file" name="picFile"/>
+    <input type="submit"/>
+</form>
+</body>
+</html>

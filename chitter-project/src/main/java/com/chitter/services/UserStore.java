@@ -12,9 +12,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
@@ -55,24 +57,23 @@ public class UserStore {
     }
 
 
-    public UserItem add(UserItem userItem, String password) {
+    public UserItem add(UserItem userItem, String password) throws IOException {
         try {
             password = passwdFactory.getPasswordManager(passwdFactory.CURRENT_SCHEME).getEncodedPasswd(password, userItem.getEmail());
-            String sql = "insert into users (name, email, scheme, password, photo_path) values(:" + NAME + ", :" + EMAIL + ", :" + SCHEME + ", :" + PASS + ", :" + PHOTO_PATH + ") ";
+            String sql = "insert into users (name, email, scheme, password) values(:" + NAME + ", :" + EMAIL + ", :" + SCHEME + ", :" + PASS + ") ";
             MapSqlParameterSource namedParameters = new MapSqlParameterSource(NAME, userItem.getName());
             namedParameters.addValue(EMAIL, userItem.getEmail());
             namedParameters.addValue(SCHEME, passwdFactory.CURRENT_SCHEME);
             namedParameters.addValue(PASS, password);
-            namedParameters.addValue(PHOTO_PATH, userItem.getPhotoPath());
 
             long id = db.queryForLong(sql + "returning id", namedParameters);
+            storeDefaultProfilePic(id);
 
             return getUserWithId(id);
         } catch (DataAccessException e) {
             return null;
         }
     }
-
 
     public UserItem getUserWithId(long id) {
         try {
@@ -136,9 +137,9 @@ public class UserStore {
     }
 
     public int updatePassword(String password, UserItem userItem) {
-        String sql = "update users set password =:" + PASS + ", scheme =:" + SCHEME + " where id=:"+USER_ID;
+        String sql = "update users set password =:" + PASS + ", scheme =:" + SCHEME + " where id=:" + USER_ID;
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(SCHEME, passwdFactory.CURRENT_SCHEME);
-        namedParameters.addValue(USER_ID,userItem.getId());
+        namedParameters.addValue(USER_ID, userItem.getId());
         namedParameters.addValue(PASS, passwdFactory.getPasswordManager(passwdFactory.CURRENT_SCHEME).getEncodedPasswd(password, userItem.getEmail()));
         return db.update(sql, namedParameters);
     }
@@ -187,6 +188,17 @@ public class UserStore {
 
     }
 
+    public void storeProfilePic(UserItem useritem, MultipartFile picFile) throws IOException {
+        File userPicFile = new File("/var/www/" + useritem.getPhotoPath());
+        copyFile(picFile, userPicFile);
+    }
+
+    private void storeDefaultProfilePic(long id) throws IOException {
+        File defaultPic = new File(UserItem.DEFAULT_PROFILE_PIC);
+        File userPic = new File("/var/www/" + UserItem.PROFILE_PIC_PATH + String.valueOf(id) + ".jpg");
+        copyFile(defaultPic, userPic);
+    }
+
     private class UserCredential {
         private String password;
         private int scheme;
@@ -198,4 +210,54 @@ public class UserStore {
             this.userItem = userItem;
         }
     }
+
+
+    public static void copyFile(File sourceFile, File destFile) throws IOException {
+        if (!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        } finally {
+            if (source != null) {
+                source.close();
+            }
+            if (destination != null) {
+                destination.close();
+            }
+        }
+    }
+
+    private void copyFile(MultipartFile source, File dest) throws IOException {
+        if (!dest.exists()) {
+            dest.createNewFile();
+        }
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = source.getInputStream();
+            out = new FileOutputStream(dest);
+
+            // Transfer bytes from in to out
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+
 }
