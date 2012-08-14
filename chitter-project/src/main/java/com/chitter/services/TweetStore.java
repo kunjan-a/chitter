@@ -283,8 +283,18 @@ public class TweetStore {
         return retweetedBy(currUser, tweetIds);
     }
 
-    public List<FeedItem> getFeedsForTweetId(long tweetId) {
-        String sql = "select * from user_tweets where event_id=:" + TWEET_ID;
+    public List<FeedItem> getFeedsForTweet(long tweetId, long originalTweeterId) {
+        String sql = "select * from retweets where tweet_id=:" + TWEET_ID;
+        final List<Long> retweeterIds = db.query(sql, new MapSqlParameterSource(TWEET_ID, tweetId), new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("user_id");
+            }
+        });
+
+        //TODO: For sharding the user_tweets can be mulitple depending upon whether the original tweeter and retweeters are in same db or not.
+        sql = "select * from user_tweets where event_id=:" + TWEET_ID;
+
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(TWEET_ID, tweetId), UserTweetItem.rowMapper);
 
         if (userTweetItems.isEmpty())

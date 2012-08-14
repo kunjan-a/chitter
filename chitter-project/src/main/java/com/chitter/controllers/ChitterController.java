@@ -37,16 +37,8 @@ public class ChitterController {
     }
 
     @RequestMapping("/")
-    public ModelAndView index(HttpSession session) {
-        ModelAndView mv = new ModelAndView("index");
-        mv.addObject("name", session.getAttribute("userName"));
-        UserItem userItem = userStore.getUserWithId((Long) session.getAttribute("userID"));
-        List<FeedItem> feeds = tweetStore.listFeeds(userItem);
-        mv.addObject("feeds", feeds);
-
-        mv.addObject("users", userStore.getUserItems(feeds));
-        mv.addObject("user", userItem);
-        return mv;
+    public String index(HttpSession session) {
+        return "index";
     }
 
     @RequestMapping(value = "/user/{id}")

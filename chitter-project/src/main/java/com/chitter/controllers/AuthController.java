@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.Map;
 
 @Controller
@@ -63,7 +64,7 @@ public class AuthController {
 
     @RequestMapping(value = "/resetPasswordByRecovery", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object> resetPassword(@RequestParam String password,@RequestParam String password2, HttpSession session) {
+    public Map<Object, Object> resetPassword(@RequestParam String password, @RequestParam String password2, HttpSession session) {
         Map<Object, Object> response;
         UserItem userItem = (UserItem) session.getAttribute("recoveryUserItem");
         if (userItem != null) {
@@ -97,7 +98,7 @@ public class AuthController {
 
     @RequestMapping(value = "/request/register", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object> register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) {
+    public Map<Object, Object> register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) throws IOException {
         Map<Object, Object> response;
 
         UserItem addedUserItem = userStore.add(userItem, password);

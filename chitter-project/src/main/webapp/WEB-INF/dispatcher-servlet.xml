@@ -21,10 +21,12 @@
             <mvc:mapping path="/**"/>
             <bean class="com.chitter.interceptors.AuthInterceptor"/>
         </mvc:interceptor>
-        <mvc:interceptor>
-            <mvc:mapping path="/"/>
-            <bean class="com.chitter.interceptors.HomePageInterceptor"/>
-        </mvc:interceptor>
+        <!--
+                <mvc:interceptor>
+                    <mvc:mapping path="/"/>
+                    <bean class="com.chitter.interceptors.HomePageInterceptor"/>
+                </mvc:interceptor>
+        -->
         <mvc:interceptor>
             <mvc:mapping path="/login"/>
             <bean class="com.chitter.interceptors.LoginPageInterceptor"/>
