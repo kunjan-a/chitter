@@ -75,7 +75,8 @@ public class RestController {
             response = ResponseUtil.getSuccessfulResponse(followers);
             response.put("user", userItem);
 
-            response.put("follows", followStore.currentFollows(followers));
+            response.put("usersFollowed", followStore.currentFollows(followers));
+            response.put("follows", followStore.currentFollows(userItem));
 
         } else {
             response = ResponseUtil.getFailureResponse("No user exists with id:" + id);
@@ -97,7 +98,8 @@ public class RestController {
             response = ResponseUtil.getSuccessfulResponse(followed);
             response.put("user", userItem);
 
-            response.put("follows", followStore.currentFollows(followed));
+            response.put("usersFollowed", followStore.currentFollows(followed));
+            response.put("follows", followStore.currentFollows(userItem));
             return response;
         } else {
             response = ResponseUtil.getFailureResponse("No user exists with id:" + id);

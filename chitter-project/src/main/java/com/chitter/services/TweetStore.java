@@ -141,7 +141,7 @@ public class TweetStore {
 
         String sql = "update tweets set retweets=retweets+1 where id=:" + TWEET_ID + ";" +
                 "insert into user_tweets (id, user_id, event_type, event_id, time) values(:" + USR_TWEET_ID + ",:" + USER_ID + ",CAST(:" + EVENT_TYPE + " AS tweet_type_enum),:" + TWEET_ID + ",:" + TIME + ");" +
-                "insert into retweets (tweet_id, user_id) values( :" + TWEET_ID + ",:" + USER_ID + ")" +
+                "insert into retweets (tweet_id, user_id) values( :" + TWEET_ID + ",:" + USER_ID + ");" +
                 "update users set tweet_count=tweet_count+1 where id=:" + USER_ID + ";";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, currUser);
         namedParameters.addValue(TWEET_ID, tweetItem.getId());
@@ -265,14 +265,14 @@ public class TweetStore {
     }
 
     private List<Long> retweetedBy(Long userId, HashSet<Long> tweetIds) {
-        String sql = "select tweet_id from retweets where user_id=:" + USR_TWEET_USER_ID + " AND event_id in (:" + TWEET_IDS + ")";
+        String sql = "select tweet_id from retweets where user_id=:" + USR_TWEET_USER_ID + " AND tweet_id in (:" + TWEET_IDS + ")";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USR_TWEET_USER_ID, userId);
         namedParameters.addValue(TWEET_IDS, tweetIds);
 
         return db.query(sql, namedParameters, new RowMapper<Long>() {
             @Override
             public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return rs.getLong("event_id");
+                return rs.getLong("tweet_id");
             }
         });
     }
