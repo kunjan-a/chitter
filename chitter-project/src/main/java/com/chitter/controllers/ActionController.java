@@ -50,7 +50,23 @@ public class ActionController {
             userStore.storeProfilePic(useritem, picFile);
             return ResponseUtil.getSuccessfulResponse("Image uploaded successfully.");
         } else {
-            return ResponseUtil.getFailureResponse("Opps!, there was an error in image upload. Please try again.");
+            return ResponseUtil.getFailureResponse("Oops!, there was an error in image upload. Please try again.");
+        }
+    }
+
+    @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<Object, Object> handleFormUpload(@RequestParam String currentPassword, @RequestParam String password, @RequestParam String password2, HttpSession session) throws IOException {
+
+        UserItem userItem = new UserItem();
+        userItem.setId((Long) session.getAttribute("userID"));
+        userItem = userStore.getUserWithCredentials(userItem, currentPassword);
+
+        if (userItem != null) {
+            userStore.updatePassword(password, userItem);
+            return ResponseUtil.getSuccessfulResponse("Password updated successfully.");
+        } else {
+            return ResponseUtil.getFailureResponse("Your current password did not match.");
         }
     }
 

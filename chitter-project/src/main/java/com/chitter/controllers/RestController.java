@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -39,15 +40,15 @@ public class RestController {
     }
 
 
-    @RequestMapping("{id}/tweets")
+    @RequestMapping("{userId}/tweets")
     @ResponseBody
-    public Map<Object, Object> fetchTweets(@PathVariable long id, HttpSession session) {
+    public Map<Object, Object> fetchTweets(@PathVariable long userId, @RequestParam(required = false) Integer numResults, HttpSession session) {
         Map<Object, Object> response;
 
-        UserItem userItem = userStore.getUserWithId(id);
+        UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = tweetStore.listTweets(userItem);
+            List<FeedItem> feeds = tweetStore.listTweets(userItem, numResults);
             response = ResponseUtil.getSuccessfulResponse(feeds);
             response.put("users", userStore.getUserItems(feeds));
 
@@ -56,19 +57,67 @@ public class RestController {
             response.put("follows", followStore.currentFollows(userItem));
             response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
         } else {
-            response = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
         }
         response.put("userexists", validId);
         addCurrentUserItem(session, response);
         return response;
     }
 
-    @RequestMapping("{id}/followers")
+    @RequestMapping("{userId}/tweetsBefore")
     @ResponseBody
-    public Map<Object, Object> followers(@PathVariable long id, HttpSession session) {
+    public Map<Object, Object> fetchTweetsBefore(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp beforeTime, HttpSession session) {
         Map<Object, Object> response;
 
-        UserItem userItem = userStore.getUserWithId(id);
+        UserItem userItem = userStore.getUserWithId(userId);
+        final boolean validId = userItem != null;
+        if (validId) {
+            List<FeedItem> feeds = tweetStore.listTweetsBefore(userItem, numResults, beforeTime);
+            response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
+
+            response.put("user", userItem);
+
+            response.put("follows", followStore.currentFollows(userItem));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
+        } else {
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
+        }
+        response.put("userexists", validId);
+        addCurrentUserItem(session, response);
+        return response;
+    }
+
+    @RequestMapping("{userId}/tweetsAfter")
+    @ResponseBody
+    public Map<Object, Object> fetchTweetsAfter(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp afterTime, HttpSession session) {
+        Map<Object, Object> response;
+
+        UserItem userItem = userStore.getUserWithId(userId);
+        final boolean validId = userItem != null;
+        if (validId) {
+            List<FeedItem> feeds = tweetStore.listTweetsAfter(userItem, numResults, afterTime);
+            response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
+
+            response.put("user", userItem);
+
+            response.put("follows", followStore.currentFollows(userItem));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
+        } else {
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
+        }
+        response.put("userexists", validId);
+        addCurrentUserItem(session, response);
+        return response;
+    }
+
+    @RequestMapping("{userId}/followers")
+    @ResponseBody
+    public Map<Object, Object> followers(@PathVariable long userId, HttpSession session) {
+        Map<Object, Object> response;
+
+        UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
             List<UserItem> followers = followStore.listFollowers(userItem);
@@ -79,19 +128,19 @@ public class RestController {
             response.put("follows", followStore.currentFollows(userItem));
 
         } else {
-            response = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
         }
         response.put("userexists", validId);
         addCurrentUserItem(session, response);
         return response;
     }
 
-    @RequestMapping("{id}/following")
+    @RequestMapping("{userId}/following")
     @ResponseBody
-    public Map<Object, Object> following(@PathVariable long id, HttpSession session) {
+    public Map<Object, Object> following(@PathVariable long userId, HttpSession session) {
         Map<Object, Object> response;
 
-        UserItem userItem = userStore.getUserWithId(id);
+        UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
             List<UserItem> followed = followStore.listFollowed(userItem);
@@ -102,22 +151,22 @@ public class RestController {
             response.put("follows", followStore.currentFollows(userItem));
             return response;
         } else {
-            response = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
         }
         response.put("userexists", validId);
         addCurrentUserItem(session, response);
         return response;
     }
 
-    @RequestMapping("{id}/feeds")
+    @RequestMapping("{userId}/feedsAfter")
     @ResponseBody
-    public Map<Object, Object> feeds(@PathVariable long id, HttpSession session) {
+    public Map<Object, Object> feedsAfter(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp afterTime, HttpSession session) {
         Map<Object, Object> response;
 
-        UserItem userItem = userStore.getUserWithId(id);
+        UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = tweetStore.listFeeds(userItem);
+            List<FeedItem> feeds = tweetStore.listFeedsAfter(userItem, numResults, afterTime);
             response = ResponseUtil.getSuccessfulResponse(feeds);
             response.put("users", userStore.getUserItems(feeds));
             response.put("user", userItem);
@@ -126,24 +175,72 @@ public class RestController {
             response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
             return response;
         } else {
-            response = ResponseUtil.getFailureResponse("No user exists with id:" + id);
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
         }
         response.put("userexists", validId);
         addCurrentUserItem(session, response);
         return response;
     }
 
-    @RequestMapping("/tweet/{id}")
+    @RequestMapping("{userId}/feedsBefore")
     @ResponseBody
-    public Map<Object, Object> getFeedItemForTweet(@PathVariable long id, @RequestParam Long userId, HttpSession session) {
-        List<FeedItem> feeds = tweetStore.getFeedsForTweet(id, userId);
+    public Map<Object, Object> feedsBefore(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp beforeTime, HttpSession session) {
+        Map<Object, Object> response;
+
+        UserItem userItem = userStore.getUserWithId(userId);
+        final boolean validId = userItem != null;
+        if (validId) {
+            List<FeedItem> feeds = tweetStore.listFeedsBefore(userItem, numResults, beforeTime);
+            response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
+            response.put("user", userItem);
+
+            response.put("follows", followStore.currentFollows(userItem));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
+            return response;
+        } else {
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
+        }
+        response.put("userexists", validId);
+        addCurrentUserItem(session, response);
+        return response;
+    }
+
+    @RequestMapping("{userId}/feeds")
+    @ResponseBody
+    public Map<Object, Object> feeds(@PathVariable long userId, @RequestParam(required = false) Integer numResults, HttpSession session) {
+        Map<Object, Object> response;
+
+        UserItem userItem = userStore.getUserWithId(userId);
+        final boolean validId = userItem != null;
+        if (validId) {
+            List<FeedItem> feeds = tweetStore.listFeeds(userItem, numResults);
+            response = ResponseUtil.getSuccessfulResponse(feeds);
+            response.put("users", userStore.getUserItems(feeds));
+            response.put("user", userItem);
+
+            response.put("follows", followStore.currentFollows(userItem));
+            response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
+            return response;
+        } else {
+            response = ResponseUtil.getFailureResponse("No user exists with id:" + userId);
+        }
+        response.put("userexists", validId);
+        addCurrentUserItem(session, response);
+        return response;
+    }
+
+    @RequestMapping("/tweet/{tweetId}")
+    @ResponseBody
+    public Map<Object, Object> getFeedItemForTweet(@PathVariable long tweetId, @RequestParam Long userId, HttpSession session) {
+        List<FeedItem> feeds = tweetStore.getFeedsForTweet(tweetId, userId);
         if (feeds != null) {
             Map<Object, Object> response = ResponseUtil.getSuccessfulResponse(feeds);
             response.put("users", userStore.getUserItems(feeds));
             response.put("retweeted", tweetStore.retweetedByCurrent(feeds));
             return response;
         } else {
-            return ResponseUtil.getFailureResponse("No tweet exists with the id:" + id);
+            return ResponseUtil.getFailureResponse("No tweet exists with the id:" + tweetId);
         }
     }
 

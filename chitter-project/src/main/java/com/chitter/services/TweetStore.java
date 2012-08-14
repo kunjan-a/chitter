@@ -16,6 +16,7 @@ import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -29,16 +30,21 @@ import java.util.*;
 public class TweetStore {
     private final ThreadLocal<Long> userID;
     public NamedParameterJdbcTemplate db;
-    private final String USER_ID = "user_id";
-    private final String TWEET_ID = "tweet_id";
-    private final String TIME = "time";
-    private final String TEXT = "text";
-    private final String USR_TWEET_ID = "usr_tweet_id";
-    private final String EVENT_TYPE = "event_type";
-    private final String USR_TWEET_USER_ID = "usr_tweet_user_id";
-    private final String TWEET_IDS = "tweet_ids";
-    private final String CLBR_ID = "celebrity_id";
-    private final String USR_TWEET_IDS = "user_tweet_ids";
+    private static final String USER_ID = "user_id";
+    private static final String TWEET_ID = "tweet_id";
+    private static final String TIME = "time";
+    private static final String TEXT = "text";
+    private static final String USR_TWEET_ID = "usr_tweet_id";
+    private static final String EVENT_TYPE = "event_type";
+    private static final String USR_TWEET_USER_ID = "usr_tweet_user_id";
+    private static final String TWEET_IDS = "tweet_ids";
+    private static final String CLBR_ID = "celebrity_id";
+    private static final String USR_TWEET_IDS = "user_tweet_ids";
+    private static final String LIMIT = "limit";
+    private static final Integer DEF_LIMIT = 30;
+    private static final int ONE_HOUR = 60 * 60 * 1000;
+    private static final String AFTER_TIME = "after_time";
+    private static final String BEFORE_TIME = "before_time";
 
     @Autowired
     public TweetStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -65,8 +71,8 @@ public class TweetStore {
 
         db.update(sql, namedParameters);
 
-        TweetItem addedTweetItem = getTweetWithId(userTweetItem.getEvent_id());
-        UserTweetItem addedUserTweetItem = getUserTweetWithId(userTweetItem.getId());
+        TweetItem addedTweetItem = getTweetWithId(userTweetItem.getEvent_id(), currUser);
+        UserTweetItem addedUserTweetItem = getUserTweetWithId(userTweetItem.getId(), currUser);
         addFeed(addedUserTweetItem);
         FeedItem addedFeedItem = new FeedItem(addedTweetItem, addedUserTweetItem);
         List<FeedItem> feeds = new ArrayList<FeedItem>(1);
@@ -74,30 +80,53 @@ public class TweetStore {
         return feeds;
     }
 
-    private TweetItem getTweetWithId(long tweet_id) {
+    private TweetItem getTweetWithId(long tweet_id, Long userId) {
         String sql = "select * from tweets where id=:" + TWEET_ID;
         return db.queryForObject(sql, new MapSqlParameterSource(TWEET_ID, tweet_id), TweetItem.rowMapper);
     }
 
-    private UserTweetItem getUserTweetWithId(long user_tweet_id) {
+    private UserTweetItem getUserTweetWithId(long user_tweet_id, Long userId) {
         String sql = "select * from user_tweets where id=:" + USR_TWEET_ID;
         return db.queryForObject(sql, new MapSqlParameterSource(USR_TWEET_ID, user_tweet_id), UserTweetItem.rowMapper);
     }
 
-    public List<FeedItem> listTweets(UserItem userItem) {
-        Assert.notNull(userItem);
-        String sql = "select * from user_tweets where user_id=:" + USER_ID;
-        List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USER_ID, userItem.getId()), UserTweetItem.rowMapper);
+    public List<FeedItem> listTweetsBefore(UserItem userItem, Integer numTweets, Timestamp beforeTime) {
+        if (beforeTime == null) beforeTime = new Timestamp(System.currentTimeMillis());
 
+        final String condition = " AND time < :" + BEFORE_TIME;
+        final MapSqlParameterSource namedParameters = new MapSqlParameterSource(BEFORE_TIME, beforeTime);
+        return listTweets(userItem, numTweets, condition, namedParameters);
+    }
+
+    public List<FeedItem> listTweetsAfter(UserItem userItem, Integer numTweets, Timestamp afterTime) {
+        if (afterTime == null) afterTime = new Timestamp(System.currentTimeMillis() - ONE_HOUR);
+
+        final String condition = " AND time > :" + AFTER_TIME;
+        final MapSqlParameterSource namedParameters = new MapSqlParameterSource(AFTER_TIME, afterTime);
+        return listTweets(userItem, numTweets, condition, namedParameters);
+    }
+
+    public List<FeedItem> listTweets(UserItem userItem, Integer numTweets) {
+        return listTweets(userItem, numTweets, null, null);
+    }
+
+    private List<FeedItem> listTweets(UserItem userItem, Integer numTweets, String condition, MapSqlParameterSource namedParameters) {
+        if (numTweets == null) numTweets = DEF_LIMIT;
+        if (condition == null) condition = "";
+        if (namedParameters == null) namedParameters = new MapSqlParameterSource();
+        Assert.notNull(userItem);
+
+        String sql = "select * from user_tweets where user_id=:" + USER_ID + " " + condition + " order by time DESC limit :" + LIMIT;
+        namedParameters.addValue(USER_ID, userItem.getId()).addValue(LIMIT, numTweets);
+        List<UserTweetItem> userTweetItems = db.query(sql, namedParameters, UserTweetItem.rowMapper);
+        return getFeedItems(userTweetItems);
+    }
+
+    private List<FeedItem> getFeedItems(List<UserTweetItem> userTweetItems) {
         if (userTweetItems.isEmpty())
             return new ArrayList<FeedItem>();
 
-        List<Long> tweetIds = new ArrayList<Long>(userTweetItems.size());
-        for (UserTweetItem userTweetItem : userTweetItems) {
-            tweetIds.add(userTweetItem.getEvent_id());
-        }
-        sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
-        List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
+        List<TweetItem> tweetItems = getTweetsForUserTweets(userTweetItems);
 
         Collections.sort(userTweetItems, new Comparator<UserTweetItem>() {
             @Override
@@ -114,14 +143,28 @@ public class TweetStore {
         });
 
         List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
-        Assert.isTrue(tweetIds.size() == userTweetItems.size());
+        int tweetIndex = 0;
         for (int i = 0; i < userTweetItems.size(); i++) {
             UserTweetItem userTweetItem = userTweetItems.get(i);
-            TweetItem tweetItem = tweetItems.get(i);
-            Assert.isTrue(userTweetItem.getEvent_id() == tweetItem.getId());
+            TweetItem tweetItem = tweetItems.get(tweetIndex);
+            while (userTweetItem.getEvent_id() != tweetItem.getId()) {
+                tweetIndex++;
+                tweetItem = tweetItems.get(tweetIndex);
+            }
             feeds.add(new FeedItem(tweetItem, userTweetItem));
         }
+
         return feeds;
+    }
+
+    private List<TweetItem> getTweetsForUserTweets(List<UserTweetItem> userTweetItems) {
+        Set<Long> tweetIds = new HashSet<Long>(userTweetItems.size());
+        for (UserTweetItem userTweetItem : userTweetItems) {
+            tweetIds.add(userTweetItem.getEvent_id());
+        }
+        String sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
+        return db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
+
     }
 
     public List<FeedItem> retweet(TweetItem tweetItem) {
@@ -129,7 +172,7 @@ public class TweetStore {
         Assert.notNull(currUser);
 
         try {
-            tweetItem = getTweetWithId(tweetItem.getId());
+            tweetItem = getTweetWithId(tweetItem.getId(), currUser);
         } catch (DataAccessException e) {
             return null;
         }
@@ -151,8 +194,8 @@ public class TweetStore {
 
         db.update(sql, namedParameters);
 
-        TweetItem addedTweetItem = getTweetWithId(userTweetItem.getEvent_id());
-        UserTweetItem addedUserTweetItem = getUserTweetWithId(userTweetItem.getId());
+        TweetItem addedTweetItem = getTweetWithId(userTweetItem.getEvent_id(), currUser);
+        UserTweetItem addedUserTweetItem = getUserTweetWithId(userTweetItem.getId(), currUser);
         addFeed(addedUserTweetItem);
         FeedItem addedFeedItem = new FeedItem(addedTweetItem, addedUserTweetItem);
         List<FeedItem> feeds = new ArrayList<FeedItem>(1);
@@ -190,62 +233,48 @@ public class TweetStore {
         }
     }
 
+    public List<FeedItem> listFeedsBefore(UserItem userItem, Integer numFeeds, Timestamp beforeTime) {
+        if (beforeTime == null) beforeTime = new Timestamp(System.currentTimeMillis());
 
-    public List<FeedItem> listFeeds(UserItem userItem) {
-        Assert.notNull(userItem);
-        return listFeeds(userItem.getId());
+        final String condition = " AND user_tweet_time < :" + BEFORE_TIME;
+        final MapSqlParameterSource namedParameters = new MapSqlParameterSource(BEFORE_TIME, beforeTime);
+        return listTweets(userItem, numFeeds, condition, namedParameters);
     }
 
-    public List<FeedItem> listFeeds(long userId) {
-        String sql = "select user_tweet_id from feeds where user_id=:" + USER_ID;
-        List<Long> userTweetIds = db.query(sql, new MapSqlParameterSource(USER_ID, userId), new RowMapper<Long>() {
+    public List<FeedItem> listFeedsAfter(UserItem userItem, Integer numFeeds, Timestamp afterTime) {
+        if (afterTime == null) afterTime = new Timestamp(System.currentTimeMillis() - ONE_HOUR);
+
+        final String condition = " AND user_tweet_time > :" + AFTER_TIME;
+        final MapSqlParameterSource namedParameters = new MapSqlParameterSource(AFTER_TIME, afterTime);
+        return listTweets(userItem, numFeeds, condition, namedParameters);
+    }
+
+    public List<FeedItem> listFeeds(UserItem userItem, Integer numFeeds) {
+        return listFeeds(userItem, numFeeds, null, null);
+    }
+
+    public List<FeedItem> listFeeds(UserItem userItem, Integer numFeeds, String condition, MapSqlParameterSource namedParameters) {
+        if (numFeeds == null) numFeeds = DEF_LIMIT;
+        if (condition == null) condition = "";
+        if (namedParameters == null) namedParameters = new MapSqlParameterSource();
+        Assert.notNull(userItem);
+
+        String sql = "select user_tweet_id from feeds where user_id=:" + USER_ID + " " + condition + " order by user_tweet_time DESC limit :" + LIMIT;
+        namedParameters.addValue(USER_ID, userItem.getId()).addValue(LIMIT, numFeeds);
+        List<Long> userTweetIds = db.query(sql, namedParameters, new RowMapper<Long>() {
             @Override
             public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return rs.getLong("user_tweet_id");  //To change body of implemented methods use File | Settings | File Templates.
+                return rs.getLong("user_tweet_id");
             }
         });
 
-        if (userTweetIds.isEmpty())
-            return new ArrayList<FeedItem>();
-
+        if (userTweetIds.isEmpty()) return new ArrayList<FeedItem>();
 
         sql = "select * from user_tweets where id in (:" + USR_TWEET_IDS + ")";
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USR_TWEET_IDS, userTweetIds), UserTweetItem.rowMapper);
 
+        return getFeedItems(userTweetItems);
 
-        List<Long> tweetIds = new ArrayList<Long>(userTweetItems.size());
-        for (UserTweetItem userTweetItem : userTweetItems) {
-            tweetIds.add(userTweetItem.getEvent_id());
-        }
-        sql = "select * from tweets where id in (:" + TWEET_IDS + ");";
-        List<TweetItem> tweetItems = db.query(sql, new MapSqlParameterSource(TWEET_IDS, tweetIds), TweetItem.rowMapper);
-
-        Collections.sort(userTweetItems, new Comparator<UserTweetItem>() {
-            @Override
-            public int compare(UserTweetItem userTweetItem, UserTweetItem userTweetItem1) {
-                return userTweetItem.getEvent_id() > userTweetItem1.getEvent_id() ? 1 : -1;
-            }
-        });
-
-        Collections.sort(tweetItems, new Comparator<TweetItem>() {
-            @Override
-            public int compare(TweetItem tweetItem, TweetItem tweetItem1) {
-                return tweetItem.getId() > tweetItem1.getId() ? 1 : -1;
-            }
-        });
-
-        List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
-        int tweetIndex = 0;
-        for (int i = 0; i < userTweetItems.size(); i++) {
-            UserTweetItem userTweetItem = userTweetItems.get(i);
-            TweetItem tweetItem = tweetItems.get(tweetIndex);
-            while (userTweetItem.getEvent_id() != tweetItem.getId()) {
-                tweetIndex++;
-                tweetItem = tweetItems.get(tweetIndex);
-            }
-            feeds.add(new FeedItem(tweetItem, userTweetItem));
-        }
-        return feeds;
     }
 
     public List<Long> retweetedByCurrent(List<FeedItem> feeds) {

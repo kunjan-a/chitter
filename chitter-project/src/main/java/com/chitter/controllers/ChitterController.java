@@ -3,6 +3,7 @@ package com.chitter.controllers;
 import com.chitter.model.FeedItem;
 import com.chitter.model.FollowItem;
 import com.chitter.model.UserItem;
+import com.chitter.model.UserSearchResultItem;
 import com.chitter.services.FollowStore;
 import com.chitter.services.TweetStore;
 import com.chitter.services.UserStore;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
@@ -42,7 +45,7 @@ public class ChitterController {
     }
 
     @RequestMapping(value = "/user/{id}")
-    public ModelAndView profileGet(@PathVariable long id, HttpSession session) {
+    public ModelAndView profileGet(@PathVariable long id, @RequestParam(required = false) Integer numResults, HttpSession session) {
         ModelAndView mv = new ModelAndView("profile");
         UserItem userItem = userStore.getUserWithId(id);
         mv.addObject("userexists", userItem != null);
@@ -50,7 +53,7 @@ public class ChitterController {
             userItem = new UserItem();
             userItem.setId(id);
         } else {
-            List<FeedItem> feeds = tweetStore.listTweets(userItem);
+            List<FeedItem> feeds = tweetStore.listTweets(userItem, numResults);
             mv.addObject(feeds);
 
             mv.addObject("users", userStore.getUserItems(feeds));
@@ -62,6 +65,13 @@ public class ChitterController {
 
         return mv;
     }
+
+    @RequestMapping(value = "/search/users")
+    @ResponseBody
+    public List<UserSearchResultItem> searchUsers(@RequestParam String term, @RequestParam(required = false) Integer numResults) {
+        return userStore.getMatchingUsers(term, numResults);
+    }
+
 
     @RequestMapping("/user/{id}/followers")
     public ModelAndView followers(@PathVariable long id, HttpSession session) {

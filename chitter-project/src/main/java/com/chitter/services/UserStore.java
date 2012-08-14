@@ -2,6 +2,7 @@ package com.chitter.services;
 
 import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
+import com.chitter.model.UserSearchResultItem;
 import com.chitter.security.PasswordFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,10 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -49,6 +47,9 @@ public class UserStore {
     private final String TOKEN = "token";
     private final String TIME = "time";
     private final long DAY_IN_MILLISEC = 24 * 60 * 60 * 1000;
+    private static final Integer DEF_LIMIT = 10;
+    private static final String USER_PATTERN = "userPattern";
+    private static final String LIMIT = "limit";
 
     @Autowired
     public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -199,6 +200,19 @@ public class UserStore {
         copyFile(defaultPic, userPic);
     }
 
+    public List<UserSearchResultItem> getMatchingUsers(String term, Integer numResults) {
+        if (numResults == null)
+            numResults = DEF_LIMIT;
+        String searchTerm = "%" + term + "%";
+        ArrayList<HashMap<String, String>> z = new ArrayList<HashMap<String, String>>();
+
+        String sql = "select name,id from users where name ilike :" + USER_PATTERN + " limit :" + LIMIT;
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_PATTERN, searchTerm);
+        namedParameters.addValue(LIMIT, numResults);
+        final List<UserSearchResultItem> searchResult = db.query(sql, namedParameters, UserSearchResultItem.rowMapper);
+        return searchResult;
+    }
+
     private class UserCredential {
         private String password;
         private int scheme;
@@ -258,6 +272,4 @@ public class UserStore {
             }
         }
     }
-
-
 }

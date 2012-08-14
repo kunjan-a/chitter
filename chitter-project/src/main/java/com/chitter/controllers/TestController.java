@@ -55,7 +55,7 @@ public class TestController {
         return x;
     }
 
-    @RequestMapping(value = "/search/users")
+    @RequestMapping(value = "/test/users")
     @ResponseBody
     public ArrayList<HashMap<String, String>> searchUsers(@RequestParam String term) {
         String searchTerm = "%" + term + "%";
