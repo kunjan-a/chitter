@@ -2,6 +2,7 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
+    <%@include file="clientSideTemplates.jsp" %>
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/underscore.min.js"></script>
     <script type="text/javascript" src="/static/js/common.js"></script>
@@ -99,8 +100,8 @@
         $(document).ready(function(){
             $.post("/rest/${user.getId()}/tweets/", {}, function (data) {
                 console.log(data);
-                addNames(data);
-                addTimes(data.response);
+                processTweets(data);
+                console.log(data);
                 if(data.response.length > 0)
                     $(generateTweetHTML(data.response)).appendTo("#tweetList");
             });

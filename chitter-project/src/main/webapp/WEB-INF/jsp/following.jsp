@@ -9,6 +9,7 @@
 <html>
 <head>
     <title></title>
+    <%@include file="clientSideTemplates.jsp" %>
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/underscore.min.js"></script>
     <script type="text/javascript" src="/static/js/common.js"></script>

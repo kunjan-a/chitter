@@ -1,12 +1,12 @@
 var messageBox = "#MsgBox";
 
-var tweetTemplateText = '<div class="tweetItem">' +
-    '<div class="tweetedBy"><a href="/user/<%= tweetUserId %>"><%= name %></a></div>'+
-    '<div class="tweetContent"><%= tweetText %></div>'+
-    '<div class="timeStamp"><%= time %></div>'+
-    '</div>';
+function reTweet(tweetId){
+    $.post("/action/retweet", { "id":tweetId }, function (data) {
+        console.log(data);
+    });
+}
 
-var compiledTweetTemplate = _.template(tweetTemplateText);
+var compiledTweetTemplate = _.template($('#tweetItemTemplate').html());
 
 function generateTweetHTML(list){
     return _.chain(list)
@@ -20,7 +20,7 @@ var followerTemplateText = '<li class="followerItem">' +
     '<button id="followBtn" class="followBtn" userid="<%= id %>" follows="<%= follows %>"><% if(id == loggedin_user){ %> Edit Profile <% }else if(follows){ %>Following <% }else{ %>Follow <% } %></button></div>'+
 '</li>';
 
-var followerTemplate = _.template(followerTemplateText);
+var followerTemplate = _.template($('#userItemTemplate').html());
 
 function generateFollowerHTML(list){
     return _.chain(list)
@@ -33,21 +33,9 @@ function clearMessageBox() {
     $(messageBox).html('');
 }
 
-function getUsers(data){
-    var ret = new Object();
-    _.each(data.users,function(o){
-        ret[o["id"]] = o["name"];
-    });
-    ret[data.user["id"]] = data.user["name"];
-    return ret;
-}
 
-function addNames(data){
-    var users = getUsers(data);
-    _.each(data.response,function(tweet){
-        tweet["name"] = users[tweet["tweetUserId"]];
-    });
-}
+
+
 
 function genericValidator(){
     this.msg = "message to display";
@@ -105,7 +93,25 @@ function Matches(a, b) {
     return '';
 }
 
-function addTimes(tweets){
+function getUsers(data){
+    var ret = new Object();
+    _.each(data.users,function(o){
+        ret[o["id"]] = o["name"];
+    });
+    ret[data.user["id"]] = data.user["name"];
+    return ret;
+}
+
+function addNames(data){
+    var users = getUsers(data);
+    _.each(data.response,function(tweet){
+        tweet["name"] = users[tweet["tweetUserId"]];
+    });
+}
+
+function addTimes(data){
+
+    var tweets = data.response;
 
     _.each(tweets,function(tweet){
         var a = new Date(tweet['feedTime']);
@@ -120,5 +126,38 @@ function addTimes(tweets){
 
         tweet['time'] = time;
     });
+}
 
+function getRetweets(data){
+    var ret = new Object();
+    _.each(data.retweeted,function(id){
+        ret[id] = true;
+    });
+    return ret;
+}
+
+function addRetweetedFlag(data){
+    var tweets = data.response;
+    var reTweets = getRetweets(data);
+    console.log(reTweets);
+    _.each(tweets,function(tweet){
+        if(tweet["tweetUserId"] == loggedin_user){
+              tweet["retweeted"] = false;
+        }else{
+            //alert(reTweets[tweet["tweetId"]]);
+            //tweet["retweeted"] = true;
+            if(reTweets[tweet["tweetId"]]){
+                tweet["retweeted"] = true;
+            }else{
+                tweet["retweeted"] = false;
+            }
+        }
+    });
+
+}
+
+function processTweets(data){
+    addNames(data);
+    addTimes(data);
+    addRetweetedFlag(data);
 }
