@@ -29,6 +29,7 @@
         -->
         <mvc:interceptor>
             <mvc:mapping path="/login"/>
+            <mvc:mapping path="/login/"/>
             <bean class="com.chitter.interceptors.LoginPageInterceptor"/>
         </mvc:interceptor>
         <mvc:interceptor>

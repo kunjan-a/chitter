@@ -127,30 +127,15 @@ public class TweetStore {
             return new ArrayList<FeedItem>();
 
         List<TweetItem> tweetItems = getTweetsForUserTweets(userTweetItems);
-
-        Collections.sort(userTweetItems, new Comparator<UserTweetItem>() {
-            @Override
-            public int compare(UserTweetItem userTweetItem, UserTweetItem userTweetItem1) {
-                return userTweetItem.getEvent_id() > userTweetItem1.getEvent_id() ? 1 : -1;
-            }
-        });
-
-        Collections.sort(tweetItems, new Comparator<TweetItem>() {
-            @Override
-            public int compare(TweetItem tweetItem, TweetItem tweetItem1) {
-                return tweetItem.getId() > tweetItem1.getId() ? 1 : -1;
-            }
-        });
+        HashMap<Long,TweetItem> tweetItemMap = new HashMap<Long,TweetItem>();
+        for (TweetItem tweetItem : tweetItems) {
+            tweetItemMap.put(tweetItem.getId(),tweetItem);
+        }
 
         List<FeedItem> feeds = new ArrayList<FeedItem>(userTweetItems.size());
-        int tweetIndex = 0;
         for (int i = 0; i < userTweetItems.size(); i++) {
             UserTweetItem userTweetItem = userTweetItems.get(i);
-            TweetItem tweetItem = tweetItems.get(tweetIndex);
-            while (userTweetItem.getEvent_id() != tweetItem.getId()) {
-                tweetIndex++;
-                tweetItem = tweetItems.get(tweetIndex);
-            }
+            TweetItem tweetItem = tweetItemMap.get(userTweetItem.getEvent_id());
             feeds.add(new FeedItem(tweetItem, userTweetItem));
         }
 
