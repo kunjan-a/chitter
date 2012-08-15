@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
@@ -44,15 +46,17 @@ public class ActionController {
 
     @RequestMapping(value = "/uploadProfilePic", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object>
-    handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session) throws IOException {
+    public ModelAndView
+    handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session, HttpServletResponse response) throws IOException {
         UserItem useritem = userStore.getUserWithId((Long) session.getAttribute("userID"));
+        ModelAndView mv = new ModelAndView("redirect:/edit/profile");
         if (!picFile.isEmpty()) {
             userStore.storeProfilePic(useritem, picFile);
-            return ResponseUtil.getSuccessfulResponse("Image uploaded successfully.");
+            mv.addObject("imageUploadResponse",ResponseUtil.getSuccessfulResponse("Image uploaded successfully."));
         } else {
-            return ResponseUtil.getFailureResponse("Oops!, there was an error in image upload. Please try again.");
+            mv.addObject("imageUploadResponse",ResponseUtil.getFailureResponse("Oops!, there was an error in image upload. Please try again."));
         }
+        return mv;
     }
 
     @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
