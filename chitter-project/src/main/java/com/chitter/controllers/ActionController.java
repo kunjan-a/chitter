@@ -154,11 +154,14 @@ public class ActionController {
     public Map<Object, Object>
     markFavouriteTweet(@RequestParam long tweet_id,@RequestParam long tweet_creator_id, HttpSession session) {
         Map<Object, Object> response;
-        if(favouriteTweetStore.markFavouriteOfCurrent(tweet_id,tweet_creator_id))
-            response = successfulResponse.getSuccessfulResponse();
-        else
+        TweetItem tweetItem = tweetStore.getTweetWithId(tweet_id, tweet_creator_id);
+        if(tweetItem!=null){
+            if(favouriteTweetStore.markFavouriteOfCurrent(tweetItem))
+                response = successfulResponse.getSuccessfulResponse();
+            else
+                response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
+        } else
             response = failureResponse.getFailureResponse("Tweet not found.");
-
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
     }
@@ -169,10 +172,11 @@ public class ActionController {
     public Map<Object, Object>
     unmarkFavouriteTweet(@RequestParam long tweet_id,@RequestParam long tweet_creator_id, HttpSession session) {
         Map<Object, Object> response;
-        if(favouriteTweetStore.unmarkFavouriteOfCurrent(tweet_id, tweet_creator_id))
-            response = successfulResponse.getSuccessfulResponse();
+        TweetItem tweetItem = tweetStore.getTweetWithId(tweet_id, tweet_creator_id);
+        if (tweetItem != null && !favouriteTweetStore.unmarkFavouriteOfCurrent(tweetItem))
+            response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         else
-            response = failureResponse.getFailureResponse("Tweet not found.");
+            response = successfulResponse.getSuccessfulResponse();
 
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
@@ -183,11 +187,14 @@ public class ActionController {
     public Map<Object, Object>
     markFavouriteUser(@RequestParam long user_id, HttpSession session) {
         Map<Object, Object> response;
-        if(favouriteUserStore.markFavouriteOfCurrent(user_id))
-            response = successfulResponse.getSuccessfulResponse();
-        else
-            response = failureResponse.getFailureResponse("Tweet not found.");
-
+        UserItem userItem = userStore.getUserWithId(user_id);
+        if (userItem != null) {
+            if (favouriteUserStore.markFavouriteOfCurrent(userItem))
+                response = successfulResponse.getSuccessfulResponse();
+            else
+                response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
+        } else
+            response = failureResponse.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
     }
@@ -198,10 +205,11 @@ public class ActionController {
     public Map<Object, Object>
     unmarkFavouriteUser(@RequestParam long user_id, HttpSession session) {
         Map<Object, Object> response;
-        if(favouriteUserStore.unmarkFavouriteOfCurrent(user_id))
-            response = successfulResponse.getSuccessfulResponse();
+        UserItem userItem = userStore.getUserWithId(user_id);
+        if (userItem != null && !favouriteUserStore.unmarkFavouriteOfCurrent(userItem))
+            response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         else
-            response = failureResponse.getFailureResponse("Tweet not found.");
+            response = successfulResponse.getSuccessfulResponse();
 
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;

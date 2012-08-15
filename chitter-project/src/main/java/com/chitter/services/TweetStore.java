@@ -80,7 +80,7 @@ public class TweetStore {
         return feeds;
     }
 
-    private TweetItem getTweetWithId(long tweet_id, Long userId) {
+    public TweetItem getTweetWithId(long tweet_id, Long userId) {
         String sql = "select * from tweets where id=:" + TWEET_ID;
         return db.queryForObject(sql, new MapSqlParameterSource(TWEET_ID, tweet_id), TweetItem.rowMapper);
     }
@@ -122,7 +122,7 @@ public class TweetStore {
         return getFeedItems(userTweetItems);
     }
 
-    private List<FeedItem> getFeedItems(List<UserTweetItem> userTweetItems) {
+    public List<FeedItem> getFeedItems(List<UserTweetItem> userTweetItems) {
         if (userTweetItems.isEmpty())
             return new ArrayList<FeedItem>();
 

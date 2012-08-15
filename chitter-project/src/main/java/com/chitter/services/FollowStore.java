@@ -6,10 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public class FollowStore {
     private final String FLWR_ID = "follower_id";
     private final String CLBR_ID = "celebrity_id";
     private final String CLBRTY_IDS = "celebrity_ids";
+    private static final String FLWR_IDS = "follower_ids";
 
     @Autowired
     public FollowStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -93,6 +97,7 @@ public class FollowStore {
     }
 
     public boolean unfollow(UserItem userItem) {
+
         FollowItem followItem = new FollowItem(userID.get(), userItem.getId());
         try {
             String sql = "delete from followers where follower_id=:" + FLWR_ID + " AND celebrity_id=:" + CLBR_ID + "; " +
@@ -112,13 +117,33 @@ public class FollowStore {
     }
 
     public List<UserItem> listFollowers(UserItem userItem) {
-        String sql = "select * from users where id IN (select follower_id from followers where celebrity_id=:" + CLBR_ID + ");";
-        return db.query(sql, new MapSqlParameterSource(CLBR_ID, userItem.getId()), UserItem.rowMapper);
+        String sql ="select follower_id from followers where celebrity_id=:" + CLBR_ID;
+        final List<Long> follower_ids = db.query(sql, new MapSqlParameterSource(CLBR_ID, userItem.getId()), new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("follower_id");
+            }
+        });
+        if(follower_ids.isEmpty())
+            return new ArrayList<UserItem>(0);
+
+        sql = "select * from users where id IN ( :"+FLWR_IDS+ ");";
+        return db.query(sql, new MapSqlParameterSource(FLWR_IDS, follower_ids), UserItem.rowMapper);
     }
 
     public List<UserItem> listFollowed(UserItem userItem) {
-        String sql = "select * from users where id IN (select celebrity_id from following where follower_id=:" + FLWR_ID + ");";
-        return db.query(sql, new MapSqlParameterSource(FLWR_ID, userItem.getId()), UserItem.rowMapper);
+        String sql ="select celebrity_id from following where follower_id=:" + FLWR_ID;
+        final List<Long> celebrity_ids = db.query(sql, new MapSqlParameterSource(FLWR_ID, userItem.getId()), new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("celebrity_id");
+            }
+        });
+        if(celebrity_ids.isEmpty())
+            return new ArrayList<UserItem>(0);
+
+        sql = "select * from users where id IN ( :" + CLBRTY_IDS + ");";
+        return db.query(sql, new MapSqlParameterSource(CLBRTY_IDS, celebrity_ids), UserItem.rowMapper);
     }
 
 }

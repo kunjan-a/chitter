@@ -1,15 +1,18 @@
 package com.chitter.services;
 
-import com.chitter.model.FollowItem;
+import com.chitter.model.FavouriteUserItem;
 import com.chitter.model.UserItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,9 +27,9 @@ import java.util.List;
 public class FavouriteUserStore {
     private final ThreadLocal<Long> userID;
     public NamedParameterJdbcTemplate db;
-    private final String FLWR_ID = "follower_id";
-    private final String CLBR_ID = "celebrity_id";
-    private final String CLBRTY_IDS = "celebrity_ids";
+    private static final String USER_ID = "user_id";
+    private static final String FAV_USER_ID = "fav_user_id";
+    private static final String FAV_USER_IDS = "fav_user_ids";
 
     @Autowired
     public FavouriteUserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -34,52 +37,52 @@ public class FavouriteUserStore {
         this.db = template;
     }
 
-    public boolean currentFollows(UserItem userItem) {
+    public List<UserItem> listFavourites(UserItem userItem) {
+        String sql ="select favourite_user_id from favourite_users where user_id=:" + USER_ID;
+        final List<Long> favourites = db.query(sql, new MapSqlParameterSource(USER_ID, userItem.getId()), new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("favourite_user_id");
+            }
+        });
+        if(favourites.isEmpty())
+            return new ArrayList<UserItem>(0);
+
+        sql = "select * from users where id IN ( :" + FAV_USER_IDS + ");";
+        return db.query(sql, new MapSqlParameterSource(FAV_USER_IDS, favourites), UserItem.rowMapper);
+
+    }
+
+    public boolean isCurrentsFavourite(UserItem userItem) {
         Long currUserId = userID.get();
         if (currUserId == null)
             return false;
-        return isFollower(new FollowItem(currUserId, userItem.getId()));
+        return isFavourite(new FavouriteUserItem(currUserId, userItem.getId()));
     }
 
-    public List<FollowItem> currentFollows(List<UserItem> followed) {
-        Long currUserId = userID.get();
-        if (currUserId == null)
-            return new ArrayList<FollowItem>();
-        return isFollower(currUserId, followed);
-    }
-
-    private boolean isFollower(FollowItem checkFollowItem) {
-        String sql = "Select count(*) from following where follower_id=:" + FLWR_ID + " AND celebrity_id=:" + CLBR_ID + ";";
-        MapSqlParameterSource namedParameters = new MapSqlParameterSource(FLWR_ID, checkFollowItem.getFollowerId());
-        namedParameters.addValue(CLBR_ID, checkFollowItem.getCelebrityId());
+    private boolean isFavourite(FavouriteUserItem checkFavouriteUserItem) {
+        String sql = "Select count(*) from favourite_users where user_id=:" + USER_ID + " AND favourite_user_id=:" + FAV_USER_ID + ";";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, checkFavouriteUserItem.getUser_id());
+        namedParameters.addValue(FAV_USER_ID, checkFavouriteUserItem.getFavourite_user_id());
 
         return db.queryForInt(sql, namedParameters) == 1;
+
     }
 
-    private List<FollowItem> isFollower(Long follower_id, List<UserItem> followed) {
-        if(followed.isEmpty())
-            return new ArrayList<FollowItem>();
-
-        List<Long> celebrityIds = new ArrayList<Long>();
-        for (UserItem userItem : followed) {
-            celebrityIds.add(userItem.getId());
-        }
-
-        String sql = "select * from following where follower_id=:" + FLWR_ID + " AND celebrity_id IN (:" + CLBRTY_IDS + ");";
-        MapSqlParameterSource namedParameters = new MapSqlParameterSource(FLWR_ID, follower_id);
-        namedParameters.addValue(CLBRTY_IDS, celebrityIds);
-        return db.query(sql, namedParameters, FollowItem.rowMapper);
+    public boolean markFavouriteOfCurrent(UserItem userItem) {
+        Long currUserId = userID.get();
+        if (currUserId == null)
+            return false;
+        return markFavouriteOf(currUserId,userItem);
     }
 
-    public boolean follow(UserItem userItem) {
-        FollowItem followItem = new FollowItem(userID.get(), userItem.getId());
+    private boolean markFavouriteOf(long userId, UserItem favourite) {
+        FavouriteUserItem favouriteUserItem = new FavouriteUserItem(userId, favourite.getId());
         try {
-            String sql = "insert into followers (follower_id,celebrity_id) values (:" + FLWR_ID + ",:" + CLBR_ID + ");" +
-                    "insert into following (follower_id,celebrity_id) values (:" + FLWR_ID + ",:" + CLBR_ID + ");" +
-                    "update users set follower_count=follower_count+1 where id=:" + CLBR_ID + ";" +
-                    "update users set following_count=following_count+1 where id=:" + FLWR_ID + ";";
-            MapSqlParameterSource namedParameters = new MapSqlParameterSource(FLWR_ID, followItem.getFollowerId());
-            namedParameters.addValue(CLBR_ID, followItem.getCelebrityId());
+            String sql = "insert into favourite_users (user_id,favourite_user_id) values (:" + USER_ID + ",:" + FAV_USER_ID + ");" +
+                    "update users set favourite_count=favourite_count+1 where id=:" + USER_ID + ";";
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, favouriteUserItem.getUser_id());
+            namedParameters.addValue(FAV_USER_ID, favouriteUserItem.getFavourite_user_id());
 
             int result = db.update(sql, namedParameters);
             return result > 0;
@@ -92,52 +95,51 @@ public class FavouriteUserStore {
         }
     }
 
-    public boolean unfollow(UserItem userItem) {
-        FollowItem followItem = new FollowItem(userID.get(), userItem.getId());
-        try {
-            String sql = "delete from followers where follower_id=:" + FLWR_ID + " AND celebrity_id=:" + CLBR_ID + "; " +
-                    "delete from following where follower_id=:" + FLWR_ID + " AND celebrity_id=:" + CLBR_ID + ";" +
-                    "update users set follower_count=follower_count-1 where id=:" + CLBR_ID + ";" +
-                    "update users set following_count=following_count-1 where id=:" + FLWR_ID + ";";
-            MapSqlParameterSource namedParameters = new MapSqlParameterSource(FLWR_ID, followItem.getFollowerId());
-            namedParameters.addValue(CLBR_ID, followItem.getCelebrityId());
-            db.update(sql, namedParameters);
+    public boolean unmarkFavouriteOfCurrent(UserItem userItem) {
+        Long currUserId = userID.get();
+        if (currUserId == null)
+            return false;
+        return unmarkFavouriteOf(currUserId, userItem);
+    }
 
+    private boolean unmarkFavouriteOf(long userId, UserItem favourite) {
+        FavouriteUserItem favouriteUserItem = new FavouriteUserItem(userId, favourite.getId());
+        try {
+            String sql = "delete from favourite_users where user_id=:"+USER_ID+" AND favourite_user_id=:" +FAV_USER_ID +";"+
+                    "update users set favourite_count=favourite_count-1 where id=:" + USER_ID + ";";
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, favouriteUserItem.getUser_id());
+            namedParameters.addValue(FAV_USER_ID, favouriteUserItem.getFavourite_user_id());
+
+            db.update(sql, namedParameters);
             return true;
         } catch (DataAccessException e) {
             System.out.println(e.getMessage());
             System.out.println(e.getStackTrace());
             return false;
         }
+
     }
 
-    public List<UserItem> listFollowers(UserItem userItem) {
-        String sql = "select * from users where id IN (select follower_id from followers where celebrity_id=:" + CLBR_ID + ");";
-        return db.query(sql, new MapSqlParameterSource(CLBR_ID, userItem.getId()), UserItem.rowMapper);
+    public List<FavouriteUserItem> favouritesOfCurrent(List<UserItem> favUsers) {
+        Long currUserId = userID.get();
+        if (currUserId == null)
+            return new ArrayList<FavouriteUserItem>();
+        return favouritesOf(currUserId, favUsers);
     }
 
-    public List<UserItem> listFollowed(UserItem userItem) {
-        String sql = "select * from users where id IN (select celebrity_id from following where follower_id=:" + FLWR_ID + ");";
-        return db.query(sql, new MapSqlParameterSource(FLWR_ID, userItem.getId()), UserItem.rowMapper);
-    }
+    private List<FavouriteUserItem> favouritesOf(long userId, List<UserItem> favUsers) {
+        if(favUsers.isEmpty())
+            return new ArrayList<FavouriteUserItem>();
 
-    public List<UserItem> listFavourites(UserItem userItem) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
-    }
+        List<Long> favUserIds = new ArrayList<Long>();
+        for (UserItem userItem : favUsers) {
+            favUserIds.add(userItem.getId());
+        }
 
-    public Object isCurrentsFavourite(UserItem userItem) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
-    }
+        String sql = "select * from favourite_users where user_id=:" + USER_ID + " AND favourite_user_id IN (:" + FAV_USER_IDS + ");";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, userId);
+        namedParameters.addValue(FAV_USER_IDS, favUserIds);
+        return db.query(sql, namedParameters, FavouriteUserItem.rowMapper);
 
-    public boolean markFavouriteOfCurrent(long user_id) {
-        return false;  //To change body of created methods use File | Settings | File Templates.
-    }
-
-    public boolean unmarkFavouriteOfCurrent(long user_id) {
-        return false;  //To change body of created methods use File | Settings | File Templates.
-    }
-
-    public Object favouritesOfCurrent(List<UserItem> followers) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
     }
 }

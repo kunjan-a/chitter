@@ -221,13 +221,13 @@ public class RestController {
     @RequestMapping("{userId}/favouriteTweets")
     @ResponseBody
     public Map<Object, Object>
-    favouriteTweets(@PathVariable long userId, @RequestParam(required = false) Integer numResults, HttpSession session) {
+    favouriteTweets(@PathVariable long userId, HttpSession session) {
         Map<Object, Object> response;
 
         UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = favouriteTweetStore.listFavourites(userItem, numResults);
+            List<FeedItem> feeds = favouriteTweetStore.listFavourites(userItem);
             response = getFeedsResponse(userItem, feeds);
         } else {
             response = userIdNotFoundFailureResponse(userId);
