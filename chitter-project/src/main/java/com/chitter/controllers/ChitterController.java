@@ -44,6 +44,11 @@ public class ChitterController {
         return "index";
     }
 
+    @RequestMapping("/edit/profile")
+    public String editprofile(HttpSession session) {
+        return "editprofile";
+    }
+
     @RequestMapping(value = "/user/{id}")
     public ModelAndView profileGet(@PathVariable long id, @RequestParam(required = false) Integer numResults, HttpSession session) {
         ModelAndView mv = new ModelAndView("profile");
@@ -93,6 +98,8 @@ public class ChitterController {
         return mv;
 
     }
+
+
 
     @RequestMapping("/user/{id}/following")
     public ModelAndView following(@PathVariable long id, HttpSession session) {
