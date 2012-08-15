@@ -13,8 +13,8 @@ function validateSignUp() {
 function doRegister(signUpForm) {
     clearMessageBox();
     if (validateSignUp()) {
-                $.post('/request/register', $(signUpForm).serialize(), function (data) {
-                    showMessage('<div>' + data.msg + '</div>');
-                });
+        $.post('/request/register', $(signUpForm).serialize(), function (data) {
+            showMessage('<div>' + data.msg + '</div>');
+        });
     }
 }

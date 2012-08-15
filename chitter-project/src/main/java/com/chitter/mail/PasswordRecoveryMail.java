@@ -29,7 +29,7 @@ public class PasswordRecoveryMail {
                 "There was a request for recovering your password made at http://www.chitter.com \r\n" +
                 "Please click on the following link to reset your password: \r\n" +
                 recoveryUrl + "\r\n \r\n \r\n" +
-                "Please note that the above link will expire in 24 hours for security reasons.";
+                "Please note that the above link will expire in an hour's time for security reasons.";
     }
 
     public void send() throws AddressException, MessagingException {

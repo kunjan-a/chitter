@@ -102,35 +102,23 @@ public class AuthController {
             return ResponseUtil.getFailureResponse("Invalid username/password.");
     }
 
-
     @RequestMapping(value = "/request/register", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object> register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) throws IOException {
+    public Map<Object, Object> register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) throws IOException, NoSuchAlgorithmException {
         Map<Object, Object> response;
 
         UserItem addedUserItem = userStore.add(userItem, password);
 
         if (addedUserItem != null) {
-            response = ResponseUtil.getSuccessfulResponse("Registration successful. We trust you so no need to validate the email");
-            signIn(addedUserItem, session);
+            response = ResponseUtil.getSuccessfulResponse("Registration successful. Please check the email sent to your email id for the last step.");
         } else {
-            String msg = "Registration Failed.";
-            if (userStore.getUserWithEmail(userItem) != null)
-                msg += " " + userItem.getEmail() + " is already registered.";
+            String msg = "This is embarassing. Registration Failed. Please try again.";
             response = ResponseUtil.getFailureResponse(msg);
         }
 
         return response;
     }
 
-
-    @RequestMapping(value = "/request/emailExists", method = RequestMethod.POST)
-    @ResponseBody
-    public Map<Object, Object> emailExists(@RequestParam String email, UserItem userItem, HttpSession session) {
-        String isPresent;
-        isPresent = userStore.getUserWithEmail(userItem) != null ? "1" : "0";
-        return ResponseUtil.getResponse("Exists", isPresent);
-    }
 
     private void signIn(UserItem userItem, HttpSession session) {
         session.setAttribute("userName", userItem.getName());

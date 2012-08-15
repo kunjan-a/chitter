@@ -18,8 +18,37 @@ public class UserItem {
     private long tweetCount, followerCount, followingCount;
     private String name;
     private String email;
+    private String bio;
+    private String website;
+    private String location;
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    private String emailVerification;
     public static final String PROFILE_PIC_PATH = "/static/images/user/";
-    public static final String DEFAULT_PROFILE_PIC = PROFILE_PIC_PATH + "default.jpg";
+    public static final String DEFAULT_PROFILE_PIC = PROFILE_PIC_PATH + "default";
 
     public long getTweetCount() {
         return tweetCount;
@@ -59,6 +88,10 @@ public class UserItem {
         this.followerCount = resultSet.getLong("follower_count");
         this.followingCount = resultSet.getLong("following_count");
         this.tweetCount = resultSet.getLong("tweet_count");
+        this.bio = resultSet.getString("bio");
+        this.location = resultSet.getString("location");
+        this.website = resultSet.getString("website");
+        this.emailVerification = resultSet.getString("email_verification");
     }
 
     public UserItem() {
@@ -89,7 +122,7 @@ public class UserItem {
     }
 
     public String getPhotoPath() {
-        return id != null ? PROFILE_PIC_PATH + id + ".jpg" : DEFAULT_PROFILE_PIC;
+        return id != null ? PROFILE_PIC_PATH + id : DEFAULT_PROFILE_PIC;
     }
 
 }

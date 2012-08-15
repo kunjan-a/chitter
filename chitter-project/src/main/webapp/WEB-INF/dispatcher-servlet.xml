@@ -13,20 +13,10 @@
     <mvc:annotation-driven/>
     <mvc:interceptors>
         <mvc:interceptor>
-            <mvc:mapping path="/test"/>
-            <bean class="com.chitter.interceptors.DummyInterceptor"/>
-        </mvc:interceptor>
-        <mvc:interceptor>
             <mvc:mapping path="/"/>
             <mvc:mapping path="/**"/>
             <bean class="com.chitter.interceptors.AuthInterceptor"/>
         </mvc:interceptor>
-        <!--
-                <mvc:interceptor>
-                    <mvc:mapping path="/"/>
-                    <bean class="com.chitter.interceptors.HomePageInterceptor"/>
-                </mvc:interceptor>
-        -->
         <mvc:interceptor>
             <mvc:mapping path="/login"/>
             <mvc:mapping path="/login/"/>

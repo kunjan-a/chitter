@@ -50,10 +50,13 @@ public class UserStore {
     private final PasswordFactory passwdFactory = new PasswordFactory();
     private final String TOKEN = "token";
     private final String TIME = "time";
-    private final long DAY_IN_MILLISEC = 24 * 60 * 60 * 1000;
+    private final long HOUR_IN_MILLISEC = 60 * 60 * 1000;
     private static final Integer DEF_LIMIT = 10;
     private static final String USER_PATTERN = "userPattern";
     private static final String LIMIT = "limit";
+    private static final String BIO = "bio";
+    private static final String LOCATION = "location";
+    private static final String WEBSITE = "website";
 
     @Autowired
     public UserStore(@Qualifier("userID") ThreadLocal<Long> userID, @Qualifier("namedParameterJdbcTemplate") NamedParameterJdbcTemplate template) {
@@ -62,7 +65,7 @@ public class UserStore {
     }
 
 
-    public UserItem add(UserItem userItem, String password) throws IOException {
+    public UserItem add(UserItem userItem, String password) throws IOException, NoSuchAlgorithmException {
         try {
             password = passwdFactory.getPasswordManager(passwdFactory.CURRENT_SCHEME).getEncodedPasswd(password, userItem.getEmail());
             String sql = "insert into users (name, email, scheme, password) values(:" + NAME + ", :" + EMAIL + ", :" + SCHEME + ", :" + PASS + ") ";
@@ -74,9 +77,14 @@ public class UserStore {
             long id = db.queryForLong(sql + "returning id", namedParameters);
             storeDefaultProfilePic(id);
 
+
             return getUserWithId(id);
         } catch (DataAccessException e) {
-            return null;
+            final UserItem userWithEmail = getUserWithEmail(userItem);
+            if(userWithEmail!=null){
+                final String recoveryToken = getRecoveryToken(userWithEmail);
+            }
+            return userWithEmail;
         }
     }
 
@@ -119,11 +127,6 @@ public class UserStore {
         }
     }
 
-    public boolean userExists(long id) {
-        String sql = "select count(*) from users where id=:" + USER_ID;
-        return (db.queryForInt(sql, new MapSqlParameterSource(USER_ID, id)) == 1);
-    }
-
     public List<UserItem> getUserItems(List<FeedItem> feeds) {
         HashSet<Long> userIds = new HashSet<Long>(feeds.size());
         for (FeedItem feed : feeds) {
@@ -151,6 +154,14 @@ public class UserStore {
 
     public boolean sendRecoveryInfo(UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException, MessagingException {
 
+        String token = getRecoveryToken(userItem);
+
+        sendRecoveryMail(token,userItem);
+
+        return true;
+    }
+
+    private String getRecoveryToken(UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         String token = (new MD5Encoder()).toMd5(userItem.getEmail() + "_" + String.valueOf(System.currentTimeMillis()));
 
         String sql = "insert into recovery (user_id, token) values (:" + USER_ID + ",:" + TOKEN + ")";
@@ -163,10 +174,7 @@ public class UserStore {
             namedParameters.addValue(TIME, new Timestamp(System.currentTimeMillis()));
             db.update(sql, namedParameters);
         }
-
-        sendRecoveryMail(token,userItem);
-
-        return true;
+        return token;
     }
 
     private void sendRecoveryMail(String token, UserItem userItem) throws MessagingException {
@@ -184,7 +192,7 @@ public class UserStore {
         Timestamp creationTime = (Timestamp) values.get("time");
 
         db.update("delete from recovery where token=:" + TOKEN, new MapSqlParameterSource(TOKEN, recoveryToken));
-        if (System.currentTimeMillis() - creationTime.getTime() < DAY_IN_MILLISEC)
+        if (System.currentTimeMillis() - creationTime.getTime() < HOUR_IN_MILLISEC)
             return db.queryForObject("select * from users where id=:" + USER_ID, new MapSqlParameterSource(USER_ID, values.get("user_id")), UserItem.rowMapper);
         return null;
     }
@@ -195,7 +203,7 @@ public class UserStore {
     }
 
     private void storeDefaultProfilePic(long id) throws IOException {
-        String photoPath = UserItem.PROFILE_PIC_PATH + String.valueOf(id) + ".jpg";
+        String photoPath = UserItem.PROFILE_PIC_PATH + String.valueOf(id);
         String sql = "update users set photo_path=:"+PHOTO_PATH+" where id=:"+USER_ID;
         db.update(sql,new MapSqlParameterSource(PHOTO_PATH,photoPath).addValue(USER_ID,id));
         File defaultPic = new File(UserItem.DEFAULT_PROFILE_PIC);
@@ -215,6 +223,25 @@ public class UserStore {
         namedParameters.addValue(LIMIT, numResults);
         final List<UserSearchResultItem> searchResult = db.query(sql, namedParameters, UserSearchResultItem.rowMapper);
         return searchResult;
+    }
+
+    public UserItem updateProfileForCurrUser(UserItem userItem) {
+        final Long currUserId = userID.get();
+        return updateProfileForUserId(currUserId, userItem);
+    }
+
+    private UserItem updateProfileForUserId(Long userId, UserItem userItem) {
+        String updateName="";
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+        if(userItem.getName()!=null && !userItem.getName().isEmpty()){
+            updateName=", name=:"+NAME;
+            namedParameters.addValue(NAME,userItem.getName());
+        }
+        String sql = "update users set bio=:"+BIO+",location=:"+LOCATION+",website=:"+WEBSITE+updateName+" where id=:"+USER_ID;
+        namedParameters.addValue(BIO,userItem.getBio()).addValue(LOCATION,userItem.getLocation()).
+                        addValue(WEBSITE, userItem.getWebsite()).addValue(USER_ID, userId);
+        db.update(sql,namedParameters);
+        return getUserWithId(userId);
     }
 
     private class UserCredential {

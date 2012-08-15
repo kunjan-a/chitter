@@ -44,7 +44,8 @@ public class ActionController {
 
     @RequestMapping(value = "/uploadProfilePic", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object> handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session) throws IOException {
+    public Map<Object, Object>
+    handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session) throws IOException {
         UserItem useritem = userStore.getUserWithId((Long) session.getAttribute("userID"));
         if (!picFile.isEmpty()) {
             userStore.storeProfilePic(useritem, picFile);
@@ -56,7 +57,9 @@ public class ActionController {
 
     @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
     @ResponseBody
-    public Map<Object, Object> handleFormUpload(@RequestParam String currentPassword, @RequestParam String password, @RequestParam String password2, HttpSession session) throws IOException {
+    public Map<Object, Object>
+    changePassword(@RequestParam String currentPassword, @RequestParam String password,
+                   @RequestParam String password2, HttpSession session) throws IOException {
 
         UserItem userItem = new UserItem();
         userItem.setId((Long) session.getAttribute("userID"));
@@ -70,9 +73,22 @@ public class ActionController {
         }
     }
 
+    @RequestMapping(value = "/updateProfile", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<Object, Object>
+    updateProfile(@RequestParam(required = false) String name, @RequestParam(required = false) String location,
+                  @RequestParam(required = false) String bio, @RequestParam(required = false) String website,
+                  UserItem userItem, HttpSession session) throws IOException {
+        userItem = userStore.updateProfileForCurrUser(userItem);
+        final Map<Object, Object> successfulResponse = ResponseUtil.getSuccessfulResponse("User details updated successfully.");
+        successfulResponse.put("user",userItem);
+        return successfulResponse;
+    }
+
     @RequestMapping("tweet")
     @ResponseBody
-    public Map<Object, Object> tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
+    public Map<Object, Object>
+    tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
         Map<Object, Object> successfulResponse = ResponseUtil.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
         successfulResponse.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return successfulResponse;
@@ -81,7 +97,8 @@ public class ActionController {
 
     @RequestMapping("retweet")
     @ResponseBody
-    public Map<Object, Object> retweet(@RequestParam long id, TweetItem tweetItem, HttpSession session) {
+    public Map<Object, Object>
+    retweet(@RequestParam long id, TweetItem tweetItem, HttpSession session) {
         Map<Object, Object> response;
         List<FeedItem> retweet = tweetStore.retweet(tweetItem);
         if (retweet != null)
@@ -96,7 +113,8 @@ public class ActionController {
 
     @RequestMapping("follow")
     @ResponseBody
-    public Map<Object, Object> follow(@RequestParam long user_id, HttpSession session) {
+    public Map<Object, Object>
+    follow(@RequestParam long user_id, HttpSession session) {
         Map<Object, Object> response;
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null) {
@@ -113,7 +131,8 @@ public class ActionController {
 
     @RequestMapping("unfollow")
     @ResponseBody
-    public Map<Object, Object> unfollow(@RequestParam long user_id, HttpSession session) {
+    public Map<Object, Object>
+    unfollow(@RequestParam long user_id, HttpSession session) {
         Map<Object, Object> response;
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null && !followStore.unfollow(userItem))
