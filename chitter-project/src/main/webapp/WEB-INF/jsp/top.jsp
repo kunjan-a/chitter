@@ -21,7 +21,7 @@
 <script>
     $(document).ready(function() {
         $("input#autocomplete").autocomplete({
-            source: "/search/users",
+            source: "/rest/search/users",
             focus: function(event, ui) {event.preventDefault();event.stopPropagation();},
             select: function(event,ui){
                 window.location = '/user/'+ui.item.value;

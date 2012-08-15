@@ -24,6 +24,7 @@
         </mvc:interceptor>
         <mvc:interceptor>
             <mvc:mapping path="/action/*"/>
+            <mvc:mapping path="/edit/profile"/>
             <bean class="com.chitter.interceptors.LoggedInActionInterceptor"/>
         </mvc:interceptor>
     </mvc:interceptors>

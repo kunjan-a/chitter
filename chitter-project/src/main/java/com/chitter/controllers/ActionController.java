@@ -3,10 +3,9 @@ package com.chitter.controllers;
 import com.chitter.model.FeedItem;
 import com.chitter.model.TweetItem;
 import com.chitter.model.UserItem;
-import com.chitter.services.FollowStore;
-import com.chitter.services.TweetStore;
-import com.chitter.services.UserStore;
-import com.chitter.utils.ResponseUtil;
+import com.chitter.response.FailureResponse;
+import com.chitter.response.SuccessfulResponse;
+import com.chitter.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
@@ -35,26 +33,31 @@ public class ActionController {
     private final TweetStore tweetStore;
     private final UserStore userStore;
     private final FollowStore followStore;
+    private static final SuccessfulResponse successfulResponse = new SuccessfulResponse();
+    private static final FailureResponse failureResponse = new FailureResponse();
+    private final FavouriteTweetStore favouriteTweetStore;
+    private final FavouriteUserStore favouriteUserStore;
 
     @Autowired
-    public ActionController(TweetStore tweetStore, UserStore userStore, FollowStore followStore) {
+    public ActionController(TweetStore tweetStore, UserStore userStore, FollowStore followStore, FavouriteTweetStore favouriteTweetStore, FavouriteUserStore favouriteUserStore) {
         this.tweetStore = tweetStore;
         this.userStore = userStore;
         this.followStore = followStore;
+        this.favouriteTweetStore =  favouriteTweetStore;
+        this.favouriteUserStore = favouriteUserStore;
     }
 
 
     @RequestMapping(value = "/uploadProfilePic", method = RequestMethod.POST)
-    @ResponseBody
     public ModelAndView
-    handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session, HttpServletResponse response) throws IOException {
+    handleFormUpload(@RequestParam("picFile") MultipartFile picFile, HttpSession session) throws IOException {
         UserItem useritem = userStore.getUserWithId((Long) session.getAttribute("userID"));
         ModelAndView mv = new ModelAndView("redirect:/edit/profile");
         if (!picFile.isEmpty()) {
             userStore.storeProfilePic(useritem, picFile);
-            mv.addObject("imageUploadResponse",ResponseUtil.getSuccessfulResponse("Image uploaded successfully."));
+            mv.addObject("imageUploadResponse", successfulResponse.getSuccessfulResponse("Image uploaded successfully."));
         } else {
-            mv.addObject("imageUploadResponse",ResponseUtil.getFailureResponse("Oops!, there was an error in image upload. Please try again."));
+            mv.addObject("imageUploadResponse", failureResponse.getFailureResponse("Oops!, there was an error in image upload. Please try again."));
         }
         return mv;
     }
@@ -65,15 +68,14 @@ public class ActionController {
     changePassword(@RequestParam String currentPassword, @RequestParam String password,
                    @RequestParam String password2, HttpSession session) throws IOException {
 
-        UserItem userItem = new UserItem();
-        userItem.setId((Long) session.getAttribute("userID"));
-        userItem = userStore.getUserWithCredentials(userItem, currentPassword);
+
+        UserItem userItem = userStore.getUserWithCredentials(userStore.getUserWithId((Long) session.getAttribute("userID")), currentPassword);
 
         if (userItem != null) {
             userStore.updatePassword(password, userItem);
-            return ResponseUtil.getSuccessfulResponse("Password updated successfully.");
+            return successfulResponse.getSuccessfulResponse("Password updated successfully.");
         } else {
-            return ResponseUtil.getFailureResponse("Your current password did not match.");
+            return failureResponse.getFailureResponse("Your current password did not match.");
         }
     }
 
@@ -84,18 +86,18 @@ public class ActionController {
                   @RequestParam(required = false) String bio, @RequestParam(required = false) String website,
                   UserItem userItem, HttpSession session) throws IOException {
         userItem = userStore.updateProfileForCurrUser(userItem);
-        final Map<Object, Object> successfulResponse = ResponseUtil.getSuccessfulResponse("User details updated successfully.");
-        successfulResponse.put("user",userItem);
-        return successfulResponse;
+        final Map<Object, Object> response = successfulResponse.getSuccessfulResponse("User details updated successfully.");
+        response.put("user",userItem);
+        return response;
     }
 
     @RequestMapping("tweet")
     @ResponseBody
     public Map<Object, Object>
     tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
-        Map<Object, Object> successfulResponse = ResponseUtil.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
-        successfulResponse.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
-        return successfulResponse;
+        Map<Object, Object> response = successfulResponse.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
     }
 
 
@@ -106,9 +108,9 @@ public class ActionController {
         Map<Object, Object> response;
         List<FeedItem> retweet = tweetStore.retweet(tweetItem);
         if (retweet != null)
-            response = ResponseUtil.getSuccessfulResponse(retweet);
+            response = successfulResponse.getSuccessfulResponse(retweet);
         else
-            response = ResponseUtil.getFailureResponse("Invalid ReTweet Request");
+            response = failureResponse.getFailureResponse("Invalid ReTweet Request");
 
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
@@ -123,11 +125,11 @@ public class ActionController {
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null) {
             if (followStore.follow(userItem))
-                response = ResponseUtil.getSuccessfulResponse();
+                response = successfulResponse.getSuccessfulResponse();
             else
-                response = ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
+                response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         } else
-            response = ResponseUtil.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
+            response = failureResponse.getFailureResponse("No user exists with id:" + String.valueOf(user_id));
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
     }
@@ -140,11 +142,70 @@ public class ActionController {
         Map<Object, Object> response;
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null && !followStore.unfollow(userItem))
-            response = ResponseUtil.getFailureResponse("Sorry. Some error occurred. Please try again.");
+            response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         else
-            response = ResponseUtil.getSuccessfulResponse();
+            response = successfulResponse.getSuccessfulResponse();
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
     }
+
+    @RequestMapping("markFavouriteTweet")
+    @ResponseBody
+    public Map<Object, Object>
+    markFavouriteTweet(@RequestParam long tweet_id,@RequestParam long tweet_creator_id, HttpSession session) {
+        Map<Object, Object> response;
+        if(favouriteTweetStore.markFavouriteOfCurrent(tweet_id,tweet_creator_id))
+            response = successfulResponse.getSuccessfulResponse();
+        else
+            response = failureResponse.getFailureResponse("Tweet not found.");
+
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
+    }
+
+
+    @RequestMapping("unmarkFavouriteTweet")
+    @ResponseBody
+    public Map<Object, Object>
+    unmarkFavouriteTweet(@RequestParam long tweet_id,@RequestParam long tweet_creator_id, HttpSession session) {
+        Map<Object, Object> response;
+        if(favouriteTweetStore.unmarkFavouriteOfCurrent(tweet_id, tweet_creator_id))
+            response = successfulResponse.getSuccessfulResponse();
+        else
+            response = failureResponse.getFailureResponse("Tweet not found.");
+
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
+    }
+
+    @RequestMapping("markFavouriteUser")
+    @ResponseBody
+    public Map<Object, Object>
+    markFavouriteUser(@RequestParam long user_id, HttpSession session) {
+        Map<Object, Object> response;
+        if(favouriteUserStore.markFavouriteOfCurrent(user_id))
+            response = successfulResponse.getSuccessfulResponse();
+        else
+            response = failureResponse.getFailureResponse("Tweet not found.");
+
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
+    }
+
+
+    @RequestMapping("unmarkFavouriteUser")
+    @ResponseBody
+    public Map<Object, Object>
+    unmarkFavouriteUser(@RequestParam long user_id, HttpSession session) {
+        Map<Object, Object> response;
+        if(favouriteUserStore.unmarkFavouriteOfCurrent(user_id))
+            response = successfulResponse.getSuccessfulResponse();
+        else
+            response = failureResponse.getFailureResponse("Tweet not found.");
+
+        response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
+        return response;
+    }
+
 
 }
