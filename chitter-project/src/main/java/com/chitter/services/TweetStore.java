@@ -255,7 +255,7 @@ public class TweetStore {
 
         if (userTweetIds.isEmpty()) return new ArrayList<FeedItem>();
 
-        sql = "select * from user_tweets where id in (:" + USR_TWEET_IDS + ")";
+        sql = "select * from user_tweets where id in (:" + USR_TWEET_IDS + ") order by time DESC ";
         List<UserTweetItem> userTweetItems = db.query(sql, new MapSqlParameterSource(USR_TWEET_IDS, userTweetIds), UserTweetItem.rowMapper);
 
         return getFeedItems(userTweetItems);
