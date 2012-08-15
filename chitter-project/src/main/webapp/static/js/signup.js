@@ -13,19 +13,8 @@ function validateSignUp() {
 function doRegister(signUpForm) {
     clearMessageBox();
     if (validateSignUp()) {
-        $.post("/request/emailExists", { "email":$('#s_email').val() }, function (data) {
-            console.log(data);
-            if (data.Exists == 0) {
                 $.post('/request/register', $(signUpForm).serialize(), function (data) {
                     showMessage('<div>' + data.msg + '</div>');
                 });
-            } else {
-                showMessage('<div>An account already exists for this Email Address</div>');
-
-            }
-
-        });
-
-
     }
 }
