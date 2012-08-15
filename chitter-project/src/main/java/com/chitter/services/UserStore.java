@@ -4,7 +4,7 @@ import com.chitter.mail.PasswordRecoveryMail;
 import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
 import com.chitter.model.UserSearchResultItem;
-import com.chitter.security.PasswordFactory;
+import com.chitter.security.password.PasswordFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;

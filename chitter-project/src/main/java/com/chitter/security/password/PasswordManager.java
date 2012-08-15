@@ -1,4 +1,4 @@
-package com.chitter.security;
+package com.chitter.security.password;
 
 /**
  * Created with IntelliJ IDEA.

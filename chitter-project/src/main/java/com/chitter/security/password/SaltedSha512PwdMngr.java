@@ -1,4 +1,4 @@
-package com.chitter.security;
+package com.chitter.security.password;
 
 
 import sun.misc.BASE64Encoder;

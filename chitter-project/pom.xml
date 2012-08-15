@@ -68,6 +68,11 @@
             <artifactId>mail</artifactId>
             <version>1.4.1</version>
         </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>chitter-project</finalName>

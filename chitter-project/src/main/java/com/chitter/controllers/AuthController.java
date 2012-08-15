@@ -40,7 +40,7 @@ public class AuthController {
 
     @RequestMapping(value = "/recoverAccount")
     @ResponseBody
-    public Map<Object, Object> loginForm(@RequestParam String email, UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public Map<Object, Object> recoverAccount(@RequestParam String email, UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         UserItem requestingUser = userStore.getUserWithEmail(userItem);
         try {
             if (requestingUser != null && !userStore.sendRecoveryInfo(requestingUser))
@@ -58,7 +58,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/accountRecovery/{recoveryToken}", method = RequestMethod.GET)
-    public ModelAndView loginForm(@PathVariable String recoveryToken, HttpSession session) {
+    public ModelAndView recoverFromToken(@PathVariable String recoveryToken, HttpSession session) {
         ModelAndView mv = new ModelAndView("recoverPassword");
         UserItem userItem = userStore.validateAndExpireToken(recoveryToken);
         if (userItem != null) {
