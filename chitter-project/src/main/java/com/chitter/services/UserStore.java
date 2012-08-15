@@ -5,6 +5,8 @@ import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
 import com.chitter.model.UserSearchResultItem;
 import com.chitter.security.password.PasswordFactory;
+import com.chitter.utils.FileUtil;
+import com.chitter.utils.MD5Encoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -17,9 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
-import java.io.*;
-import java.nio.channels.FileChannel;
-import java.security.MessageDigest;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,6 +38,7 @@ import java.util.*;
 @Service
 public class UserStore {
     private final ThreadLocal<Long> userID;
+    private final FileUtil fileUtil = new FileUtil();
     public NamedParameterJdbcTemplate db;
     private final String NAME = "name";
     private final String EMAIL = "email";
@@ -148,9 +151,7 @@ public class UserStore {
 
     public boolean sendRecoveryInfo(UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException, MessagingException {
 
-        String token = null;
-        token = new String(MessageDigest.getInstance("MD5").digest((userItem.getEmail()+"_"+String.valueOf(System.currentTimeMillis())).getBytes("UTF-8")),"UTF-8");
-
+        String token = (new MD5Encoder()).toMd5(userItem.getEmail() + "_" + String.valueOf(System.currentTimeMillis()));
 
         String sql = "insert into recovery (user_id, token) values (:" + USER_ID + ",:" + TOKEN + ")";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, userItem.getId());
@@ -169,7 +170,7 @@ public class UserStore {
     }
 
     private void sendRecoveryMail(String token, UserItem userItem) throws MessagingException {
-        new PasswordRecoveryMail(userItem, "localhost:8080/accountRecovery/" + token).send();
+        new PasswordRecoveryMail(userItem, "http://localhost:8080/accountRecovery/" + token).send();
     }
 
     public UserItem validateAndExpireToken(String recoveryToken) {
@@ -190,13 +191,17 @@ public class UserStore {
 
     public void storeProfilePic(UserItem useritem, MultipartFile picFile) throws IOException {
         File userPicFile = new File("/var/www/" + useritem.getPhotoPath());
-        copyFile(picFile, userPicFile);
+        fileUtil.copyFile(picFile, userPicFile);
     }
 
     private void storeDefaultProfilePic(long id) throws IOException {
+        String photoPath = UserItem.PROFILE_PIC_PATH + String.valueOf(id) + ".jpg";
+        String sql = "update users set photo_path=:"+PHOTO_PATH+" where id=:"+USER_ID;
+        db.update(sql,new MapSqlParameterSource(PHOTO_PATH,photoPath).addValue(USER_ID,id));
         File defaultPic = new File(UserItem.DEFAULT_PROFILE_PIC);
-        File userPic = new File("/var/www/" + UserItem.PROFILE_PIC_PATH + String.valueOf(id) + ".jpg");
-        copyFile(defaultPic, userPic);
+        File userPic = new File("/var/www/" + photoPath);
+        fileUtil.copyFile(defaultPic, userPic);
+
     }
 
     public List<UserSearchResultItem> getMatchingUsers(String term, Integer numResults) {
@@ -225,50 +230,4 @@ public class UserStore {
     }
 
 
-    public static void copyFile(File sourceFile, File destFile) throws IOException {
-        if (!destFile.exists()) {
-            destFile.createNewFile();
-        }
-
-        FileChannel source = null;
-        FileChannel destination = null;
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
-        }
-    }
-
-    private void copyFile(MultipartFile source, File dest) throws IOException {
-        if (!dest.exists()) {
-            dest.createNewFile();
-        }
-        InputStream in = null;
-        OutputStream out = null;
-        try {
-            in = source.getInputStream();
-            out = new FileOutputStream(dest);
-
-            // Transfer bytes from in to out
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-        } finally {
-            if (in != null) {
-                in.close();
-            }
-            if (out != null) {
-                out.close();
-            }
-        }
-    }
 }
