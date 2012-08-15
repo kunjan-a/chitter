@@ -1,5 +1,6 @@
 package com.chitter.services;
 
+import com.chitter.mail.PasswordRecoveryMail;
 import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
 import com.chitter.model.UserSearchResultItem;
@@ -14,8 +15,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import sun.misc.BASE64Encoder;
 
+import javax.mail.MessagingException;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
@@ -145,16 +146,11 @@ public class UserStore {
         return db.update(sql, namedParameters);
     }
 
-    public boolean sendRecoveryInfo(UserItem userItem) {
+    public boolean sendRecoveryInfo(UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException, MessagingException {
 
         String token = null;
-        try {
-            token = new BASE64Encoder().encode(MessageDigest.getInstance("MD5").digest(String.valueOf(System.currentTimeMillis()).getBytes("UTF-8")));
-        } catch (NoSuchAlgorithmException e) {
-            return false;
-        } catch (UnsupportedEncodingException e) {
-            return false;
-        }
+        token = new String(MessageDigest.getInstance("MD5").digest((userItem.getEmail()+"_"+String.valueOf(System.currentTimeMillis())).getBytes("UTF-8")),"UTF-8");
+
 
         String sql = "insert into recovery (user_id, token) values (:" + USER_ID + ",:" + TOKEN + ")";
         MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, userItem.getId());
@@ -166,9 +162,14 @@ public class UserStore {
             namedParameters.addValue(TIME, new Timestamp(System.currentTimeMillis()));
             db.update(sql, namedParameters);
         }
-        System.out.println("Verification url is localhost:8080/accountRecovery/" + token);
 
-        return true;  //To change body of created methods use File | Settings | File Templates.
+        sendRecoveryMail(token,userItem);
+
+        return true;
+    }
+
+    private void sendRecoveryMail(String token, UserItem userItem) throws MessagingException {
+        new PasswordRecoveryMail(userItem, "localhost:8080/accountRecovery/" + token).send();
     }
 
     public UserItem validateAndExpireToken(String recoveryToken) {
@@ -180,13 +181,11 @@ public class UserStore {
         }
 
         Timestamp creationTime = (Timestamp) values.get("time");
-        if (System.currentTimeMillis() - creationTime.getTime() < DAY_IN_MILLISEC) {
 
-        }
         db.update("delete from recovery where token=:" + TOKEN, new MapSqlParameterSource(TOKEN, recoveryToken));
-        UserItem userItem = db.queryForObject("select * from users where id=:" + USER_ID, new MapSqlParameterSource(USER_ID, values.get("user_id")), UserItem.rowMapper);
-        return userItem;
-
+        if (System.currentTimeMillis() - creationTime.getTime() < DAY_IN_MILLISEC)
+            return db.queryForObject("select * from users where id=:" + USER_ID, new MapSqlParameterSource(USER_ID, values.get("user_id")), UserItem.rowMapper);
+        return null;
     }
 
     public void storeProfilePic(UserItem useritem, MultipartFile picFile) throws IOException {

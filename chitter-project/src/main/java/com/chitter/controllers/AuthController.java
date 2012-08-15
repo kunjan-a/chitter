@@ -16,8 +16,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 @Controller
@@ -37,10 +40,14 @@ public class AuthController {
 
     @RequestMapping(value = "/recoverAccount")
     @ResponseBody
-    public Map<Object, Object> loginForm(@RequestParam String email, UserItem userItem) {
+    public Map<Object, Object> loginForm(@RequestParam String email, UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         UserItem requestingUser = userStore.getUserWithEmail(userItem);
-        if (requestingUser != null && !userStore.sendRecoveryInfo(requestingUser))
+        try {
+            if (requestingUser != null && !userStore.sendRecoveryInfo(requestingUser))
+                return ResponseUtil.getFailureResponse("Some error occurred while sending recovery information to your email id.");
+        } catch (MessagingException e) {
             return ResponseUtil.getFailureResponse("Some error occurred while sending recovery information to your email id.");
+        }
 
         return ResponseUtil.getSuccessfulResponse("Recovery instructions have been mailed to " + email);
     }
