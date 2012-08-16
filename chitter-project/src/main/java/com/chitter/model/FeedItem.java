@@ -52,6 +52,10 @@ public class FeedItem {
         return tweetItem.getUser_id();
     }
 
+    public long getFavourites() {
+        return tweetItem.getFavourites();
+    }
+
     public void setTweetUserId(long user_id) {
         tweetItem.setUser_id(user_id);
     }

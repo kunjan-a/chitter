@@ -66,7 +66,12 @@ public class TweetItem {
         this.text = text;
     }
 
+    public int getFavourites() {
+        return favourites;
+    }
+
     public long getUser_id() {
+
         return user_id;
     }
 
