@@ -15,12 +15,20 @@ import java.sql.SQLException;
 public class UserItem {
 
     private Long id;
-    private long tweetCount, followerCount, followingCount;
+    private long tweetCount, followerCount, followingCount, favouriteCount;
     private String name;
     private String email;
     private String bio;
     private String website;
     private String location;
+
+    public long getFavouriteCount() {
+        return favouriteCount;
+    }
+
+    public void setFavouriteCount(long favouriteCount) {
+        this.favouriteCount = favouriteCount;
+    }
 
     public void setBio(String bio) {
         this.bio = bio;
@@ -92,6 +100,7 @@ public class UserItem {
         this.location = resultSet.getString("location");
         this.website = resultSet.getString("website");
         this.emailVerification = resultSet.getString("email_verification");
+        this.favouriteCount = resultSet.getLong("favourite_count");
     }
 
     public UserItem() {

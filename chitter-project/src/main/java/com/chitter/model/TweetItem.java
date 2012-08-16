@@ -19,6 +19,7 @@ public class TweetItem {
     private String text = "";
     private long user_id;
     private int retweets = 0;
+    private int favourites = 0;
 
 
     public static final RowMapper<TweetItem> rowMapper = new RowMapper<TweetItem>() {
@@ -34,6 +35,7 @@ public class TweetItem {
         text = rs.getString("text");
         retweets = rs.getInt("retweets");
         time = rs.getTimestamp("time");
+        favourites = rs.getInt("favourites");
     }
 
     public TweetItem() {
