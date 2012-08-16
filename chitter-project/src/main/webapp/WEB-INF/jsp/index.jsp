@@ -11,6 +11,7 @@
 
     <!-- Le styles -->
     <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery.ui.all.css">
     <style>
         html, body {
             height: 100%; /* needed for container min-height */
@@ -106,12 +107,13 @@
         var tweetStore;
         var followerStore;
         var followingStore;
+        var timeouts = new Array();
     </script>
 </head>
 
 <body>
 
-<div class="navbar navbar-fixed-top">
+<div class="navbar navbar-fixed-top" style="z-index: 1">
     <div class="navbar-inner">
         <div class="container-fluid">
             <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -138,10 +140,10 @@
     <div class="footer" style="position:absolute;bottom:0">Empty Div</div>
 </div>-->
 <div class="page-container">
+    <%@include file="carousel.jsp" %>
     <div id="banner" style="top:40px;">
 
     </div>
-
     <div style="width: 250px;position: fixed;top:163px;bottom: auto;height: 100%;margin-top: 23px; margin-left: 10px;"
          id="leftPane"></div>
 
@@ -165,11 +167,43 @@
     <div class="modal-footer">
     </div>
 </div>
+<div id="MsgBox" style="background-color: yellowgreen;position: fixed;top: 5px;z-index: 10000;width: 500px;margin-left: auto;margin-right: auto;display: none;left: 0px;right: 0px;font-weight: bold;padding: 3px;"></div>
+<c:if test="${empty sessionScope.userName}">
+    <div class="modal hide fade" id="forgotPasswordModal">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">x</button>
+                <h3>Forgot your password?</h3>
+            </div>
+            <div class="modal-body">
+                    Provide us with the email address you used to register your account and we will email you the steps for password recovery.<br/>
+                    <input type="text" name="email" id="forgotPassword_email" pretty_name="Email Address" class="input-xlarge" placeholder="Email"><br/>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" onclick="sendRecoveryRequest();" id="forgotPassword_btn">Send</button>
+            </div>
+    </div>
+
+    <div class="modal hide fade" id="signUpModal">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3>Modal header</h3>
+        </div>
+        <div class="modal-body">
+            <p>One fine body…</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn" data-dismiss="modal">Close</a>
+            <a href="#" class="btn btn-primary">Save changes</a>
+        </div>
+    </div>
+</c:if>
+
 
 <!-- Le javascript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/jquery-ui-1.8.custom.min.js"></script>
 <script src="/static/js/underscore.min.js"></script>
 <script src="/static/js/underscore.string.min.js"></script>
 <script type="text/javascript"> _.mixin(_.str.exports()) </script>
@@ -191,6 +225,33 @@
 <script type="text/javascript" src="/static/js/templates.js"></script>
 <script type="text/javascript" src="/static/js/stores.js"></script>
 <script type="text/javascript" src="/static/js/handlers.js"></script>
+<script type="text/javascript" src="/static/js/login.js"></script>
+
+<c:if test="${empty sessionScope.userName}">
+    <script type="text/javascript">
+        $('#forgotPasswordModal').modal({
+            keyboard:false,
+            show:false
+        });
+        function forgotPassword(){
+            $('#forgotPasswordModal').modal('show');
+        }
+
+        function validateForgotPasswordForm() {
+            var errorMsg = emailValidator.validate("forgotPassword_email");
+             showMessage(errorMsg);
+             return errorMsg == '';
+        }
+
+        function sendRecoveryRequest(loginForm) {
+            if (validateForgotPasswordForm()) {
+             $.post('/recoverAccount', {'email':$('#forgotPassword_email').val()}, function (data) {
+             showMessage(data.msg);
+             });
+             }
+        }
+    </script>
+</c:if>
 <script>
     $('#myModal').modal({
         keyboard:false,
@@ -237,7 +298,7 @@
     function followButtonClick(event) {
         var userid = $(this).attr('userid');
         if (userid == loggedInUserId) {
-            window.location.hash = '#!/edit/profile/';
+            window.location = '/edit/profile/';
         } else {
             if ($(this).attr('follows') == "true") {
                 unfollowUser(this);
@@ -268,6 +329,84 @@
     }
 
     $("#userList").delegate("button", "mouseout", followButtonMouseOut);
+    $('#banner').delegate("textarea","propertychange input textInput", function () {
+        var charCount = $(this).val().length;
+        $("#textCount").html(charCount);
+        if(charCount == 0 || charCount > 140){
+            $("#submitButton").attr('disabled','disabled');
+            $('#submitButton').removeClass('btn-primary');
+        }else{
+            $("#submitButton").removeAttr('disabled');
+            $('#submitButton').addClass('btn-primary');
+        }
+        $('#bar').width(charCount/140*100 + '%');
+        if(charCount > 140){
+            $('#progress').addClass('progress-danger');
+            $('#bar').css('color','yellow');
+        }else{
+            $('#progress').removeClass('progress-danger');
+            $('#bar').css('color','black');
+        }
+    });
+
+    function sendTweet(tweetForm) {
+        $('#submitButton').attr('disabled','disabled');
+        $('#submitButton').removeClass('btn-primary')
+        $.post('/action/tweet', $(tweetForm).serialize(), function (data) {
+            console.log(data);
+            if(data.Success == "1" && data.response.length > 0){
+                processTweets(data);
+                $(generateTweetHTML(data.response)).hide().prependTo("#tweetList").show('slow');
+                $('#tweetBox').val('');
+                $('#bar').width('0%');
+                $("#textCount").html(0);
+                showMessage("Tweet successfully posted");
+            }else{
+                showMessage("Error Posting Tweet. "+data.msg);
+            }
+
+        });
+    }
+
+    <c:if test="${not empty sessionScope.userName}">
+    $(document).ready(function() {
+        $("input#autocomplete").autocomplete({
+            source: "/rest/search/users",
+            focus: function(event, ui) {event.preventDefault();event.stopPropagation();},
+            select: function(event,ui){
+                console.log(ui);
+                window.location = '/#!/users/'+ui.item.value+'/';
+                event.preventDefault();event.stopPropagation();
+            }
+
+        }).data( "autocomplete" )._renderItem = function( ul, item ) {
+            var inner_html = '<a><div class="list_item_container"><span><img src="http://localhost/' + item.imagePath + '" width="20px" height="20px"></span><span>' + item.label + '</span></div></a>';
+            return $( "<li></li>" )
+                    .data( "item.autocomplete", item )
+                    .append(inner_html)
+                    .appendTo( ul );
+        };
+    });
+    </c:if>
+
+
+    function showMessage(msg) {
+        $('<div>'+msg+'</div>').appendTo($('#MsgBox'));
+        $('#MsgBox').slideDown('slow');
+        clearTimeouts();
+        timeouts[timeouts.length]= window.setTimeout(function(){$('#MsgBox').slideUp(),$('#MsgBox').html('');},5000);
+    }
+
+    function clearTimeouts(){
+        if (timeouts) for (var i in timeouts) if (timeouts[i]) window.clearTimeout(timeouts[i]);
+        timeouts = [];
+    }
+
+    $(window).scroll(function () {
+        if ($(window).scrollTop() >= $(document).height() - $(window).height() - 10) {
+            alert("Reached End of page");
+        }
+    });
 </script>
 
 </body>

@@ -55,6 +55,18 @@
                 });
             }
         }
+
+        function Matches(a, b) {
+            var el1 = $("#" + a);
+            var el2 = $("#" + b);
+            if (el1.val() != el2.val()) {
+                el1.addClass("errorInput");
+                el2.addClass("errorInput");
+                return '<div>' + el1.attr('pretty_name') + ' and ' + el2.attr('pretty_name') + ' should match</div>';
+            }
+            return '';
+        }
+
     </script>
 </head>
 <body>

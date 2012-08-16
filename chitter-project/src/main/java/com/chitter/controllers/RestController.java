@@ -279,8 +279,8 @@ public class RestController {
     @RequestMapping(value = "/search/users")
     @ResponseBody
     public List<UserSearchResultItem>
-    searchUsers(@RequestParam String userPattern, @RequestParam(required = false) Integer numResults) {
-        return userStore.getMatchingUsers(userPattern, numResults);
+    searchUsers(@RequestParam String term, @RequestParam(required = false) Integer numResults) {
+        return userStore.getMatchingUsers(term, numResults);
     }
 
 }

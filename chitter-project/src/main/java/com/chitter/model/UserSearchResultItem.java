@@ -27,7 +27,7 @@ public class UserSearchResultItem {
     public UserSearchResultItem(ResultSet rs) throws SQLException {
         label = rs.getString("name");
         value = rs.getString("id");
-        imagePath = rs.getString("photo_path");
+        imagePath = UserItem.PROFILE_PIC_PATH + value;
     }
 
     public String getLabel() {

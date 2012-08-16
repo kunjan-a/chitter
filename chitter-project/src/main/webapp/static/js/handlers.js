@@ -36,11 +36,7 @@ function showUserTweets(userid,flag){
             showLeftPane();
         }
         tweetStore = new TweetStore();
-        processTweets(data);
-        console.log(data);
-        _.each(data.response,function(tweet){
-            tweetStore.add(tweet);
-        });
+        tweetStore.add(data);
         console.log(tweetStore);
     });
 }
@@ -53,7 +49,6 @@ function showFollowing(userid,flag){
     }
     $.post('/rest/'+userid+'/following/', {}, function (data) {
         console.log(data);
-        data.user.follows = data.follows;
         if(flag){
             showProfileBanner(data.user);
             showLeftPane();
@@ -97,11 +92,22 @@ function showFollowers(userid,flag){
 
 
 function editProfilePageHandler(){
+    clearAllContent();
     alert("Edit Profile Handler Called");
 }
 
 function homePageHandler(){
-    alert("Home Page Handler Called");
+    if(loggedIn){
+        clearAllContent();
+        $.post('/rest/'+loggedInUserId+'/feeds/', {}, function (data) {
+            console.log(data);
+            showHomePageBanner();
+            showLeftPane();
+            tweetStore = new TweetStore();
+            tweetStore.add(data);
+            console.log(tweetStore);
+        });
+    }
 }
 
 function errorPageHandler(){

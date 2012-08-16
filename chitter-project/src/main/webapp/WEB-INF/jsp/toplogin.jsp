@@ -4,26 +4,27 @@
     <c:when test="${not empty sessionScope.userName}">
         <div class="btn-group pull-right">
             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                <img src="http://localhost/static/images/user/x.jpg" widht="20px" height="20px"/> ${sessionScope.userName}
+                <img src="http://localhost/static/images/user/${sessionScope.userID}" width="20px" height="20px"/> ${sessionScope.userName}
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
-                <li><a href="#!/users/${sessionScope.userID}/">Profile</a></li>
+                <li><a href="/#!/users/${sessionScope.userID}/">Profile</a></li>
                 <li class="divider"></li>
-                <li><a href="/logout">Sign Out</a></li>
+                <li><a href="javascript:void(0)" onclick="doLogout()">Sign Out</a></li>
             </ul>
         </div>
         <div class="pull-right">
-            <input type="text" placeholder="Search..." style="margin-top:5px;">
+            <input type="text" placeholder="Search..." style="margin-top:5px;" id="autocomplete">
         </div>
     </c:when>
     <c:otherwise>
         <div class="pull-right">
-            <form class="form-inline" style="margin-bottom:2px;">
-                <input type="text" class="input-small" placeholder="Email">
-                <input type="password" class="input-small" placeholder="Password">
-                <button type="submit" class="btn">Sign in</button>
+            <form class="form-inline" style="margin-bottom:2px;"  action="" method="post" onsubmit="doLogin(this);return false;">
+                <input type="text" name="email" id="l_email" pretty_name="Email Address" class="input-medium" placeholder="Email"/>
+                <input type="password" name="password" id="l_password" pretty_name="Password" class="input-medium" placeholder="Password"/>
+                <input type="submit" value="Sign In" class="btn"/>
             </form>
+            <span><a href="javascript:void(0);" onclick="forgotPassword();">Forgot Password</a> | <a href="javascript:void(0)" onclick="registerAccount()">Register</a></span>
         </div>
     </c:otherwise>
 </c:choose>

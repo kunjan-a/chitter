@@ -1,12 +1,24 @@
 function TweetStore(){
     this.tweets = [];
-    this.add = function(tweet){
-        var clonedTweet = _.clone(tweet);
-        this.tweets.push(clonedTweet);
-        $(generateTweetHTML([clonedTweet])).hide().appendTo("#tweetList").show('slow');
+
+    this.add = function(data){
+        processTweets(data);
+        var tweets = data.response;
+        console.log(data);
+        for(var i in tweets){
+            var clonedTweet = _.clone(tweets[i]);
+            this.tweets.push(clonedTweet);
+            if(arguments.length > 1 && arguments[1]){
+                $(generateTweetHTML([clonedTweet])).hide().prependTo("#tweetList").show('slow');
+            }else{
+                $(generateTweetHTML([clonedTweet])).hide().appendTo("#tweetList").show('slow');
+            }
+
+        }
     };
-    this.render =function(){
-        $(generateTweetHTML(this.tweets)).hide().appendTo("#tweetList").show('slow');
+
+    this.addNew = function(data){
+        this.add(data,true);
     };
 }
 

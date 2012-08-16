@@ -57,10 +57,10 @@
     Login:<br/>
 
     <form action="" method="post" onsubmit="doLogin(this);return false;" autocomplete="on">
-        email: <input type="text" name="email" id="l_email" pretty_name="Email Address"><br/>
-        password: <input type="password" name="password" id="l_password" pretty_name="Password"><br/>
-        <input type="submit">
-    </form>
+    email: <input type="text" name="email" id="l_email" pretty_name="Email Address"><br/>
+    password: <input type="password" name="password" id="l_password" pretty_name="Password"><br/>
+    <input type="submit">
+</form>
     Don't have an account please <a href="javascript:void(0);" onclick="toggleForms();">Sign Up</a>.
 </div>
 </body>

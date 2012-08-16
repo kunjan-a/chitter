@@ -138,64 +138,87 @@
     Content goes here
     <div class="footer" style="position:absolute;bottom:0">Empty Div</div>
 </div>-->
+
 <div class="page-container">
-    <div id="banner" style="top:40px;">
+    <div class="accordion" id="accordion2" style="width:500px;margin-left: auto;margin-right: auto;">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+                    <h3>Change Profile Picture</h3>
+                </a>
+            </div>
+            <div id="collapseOne" class="accordion-body collapse" style="height: auto; ">
+                <div class="accordion-inner">
+                    <form class="form-inline well" action="/action/uploadProfilePic" method="post" enctype="multipart/form-data" onsubmit="return checkfile();">
+                        <input type="file" name="picFile" id="upload_filename" pretty_name="Profile Picture" class="btn btn-success"/>
+                        <input type="submit" value="Upload Photo" class="btn btn-primary"/>
 
-    </div>
-    <div style="width: 250px;position: fixed;top:163px;bottom: auto;height: 100%;margin-top: 23px; margin-left: 10px;"
-         id="leftPane"></div>
+                    </form>
 
 
-    <div class="content" style="margin-left: 270px; padding-top: 46px;">
-        <li id="tweetList" style="list-style-type:none;"></li>
-        <li id="userList" style="list-style-type:none;"></li>
-
-    </div>
-</div>
-
-<div class="modal hide fade" id="myModal" style="display: none;">
-    <div class="modal-header">
-        <h3>Page Not Found</h3>
-    </div>
-    <div class="modal-body">
-        <p>You have entered an invalid url. Please go to the <a href="javascript:void();"
-                                                                onclick="$('#myModal').modal('hide'); window.location.hash='#!/';">Home</a>
-            page or enter any valid url.</p>
-    </div>
-    <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                    <h3>Change Profile Info</h3>
+                </a>
+            </div>
+            <div id="collapseTwo" class="accordion-body in collapse" style="height: 0px; ">
+                <div class="accordion-inner">
+                    <form class="form-horizontal well" onsubmit="updateProfileInfo(this);return false;" id="updateProfileForm">
+                        <fieldset>
+                            <div class="control-group">
+                                <label class="control-label" for="name">Full Name</label>
+                                <div class="controls">
+                                    <input type="text" name="name" id="name" pretty_name="Name" class="input-xlarge" placeholder="Full Name" value="${user.getName()}"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="bio">Short Bio</label>
+                                <div class="controls">
+                                    <input type="text" name="bio" id="bio" pretty_name="Bio" class="input-xlarge" placeholder="Short Bio" value="${user.getBio()}"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="location">Location</label>
+                                <div class="controls">
+                                    <input type="text" name="location" id="location" pretty_name="Location" class="input-xlarge" placeholder="Location" value="${user.getLocation()}"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="website">Website</label>
+                                <div class="controls">
+                                    <input type="text" name="website" id="website" pretty_name="Website" class="input-xlarge" placeholder="Website" value="${user.getWebsite()}"/>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <input type="submit" class="btn btn-primary" value="Save Changes">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree">
+                    <h3>Change Password</h3>
+                </a>
+            </div>
+            <div id="collapseThree" class="accordion-body in collapse" style="height: 0px; ">
+                <div class="accordion-inner">
+                    <form method="post" class="well" onsubmit="changePassword(this);return false;" id="changePasswordForm">
+                        <input type="password" name="currentPassword" id="password_old" pretty_name="Current Password" class="input-xlarge" placeholder="Current Password"/><br/>
+                        <input type="password" name="password" id="password_new" pretty_name="New Password" class="input-xlarge" placeholder="New Password"/><br/>
+                        <input type="password" name="password2" id="password_new_again" pretty_name="New Password Again" class="input-xlarge" placeholder="New Password Again"/><br/>
+                        <input type="submit" class="btn btn-primary" value="Save Changes">
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <div id="MsgBox" style="background-color: yellowgreen;position: fixed;top: 5px;z-index: 10000;width: 500px;margin-left: auto;margin-right: auto;display: none;left: 0px;right: 0px;font-weight: bold;padding: 3px;"></div>
-<c:if test="${empty sessionScope.userName}">
-    <div class="modal hide fade" id="forgotPasswordModal">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">x</button>
-            <h3>Forgot your password?</h3>
-        </div>
-        <div class="modal-body">
-            Provide us with the email address you used to register your account and we will email you the steps for password recovery.<br/>
-            <input type="text" name="email" id="forgotPassword_email" pretty_name="Email Address" class="input-xlarge" placeholder="Email"><br/>
-        </div>
-        <div class="modal-footer">
-            <button type="submit" class="btn btn-primary" onclick="sendRecoveryRequest();" id="forgotPassword_btn">Send</button>
-        </div>
-    </div>
-
-    <div class="modal hide fade" id="signUpModal">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">×</button>
-            <h3>Modal header</h3>
-        </div>
-        <div class="modal-body">
-            <p>One fine body…</p>
-        </div>
-        <div class="modal-footer">
-            <a href="#" class="btn" data-dismiss="modal">Close</a>
-            <a href="#" class="btn btn-primary">Save changes</a>
-        </div>
-    </div>
-</c:if>
-
 
 <!-- Le javascript
 ================================================== -->
@@ -224,40 +247,28 @@
 <script type="text/javascript" src="/static/js/handlers.js"></script>
 <script type="text/javascript" src="/static/js/login.js"></script>
 
-<c:if test="${empty sessionScope.userName}">
-    <script type="text/javascript">
-        $('#forgotPasswordModal').modal({
-            keyboard:false,
-            show:false
-        });
-        function forgotPassword(){
-            $('#forgotPasswordModal').modal('show');
+<script type="text/javascript">
+    function checkfile(){
+        var fileName = $('#upload_filename').val();
+        var ext = _(fileName).strRightBack('.').toUpperCase();
+        //alert(_.include(["GIF","JPG","JPEG","PNG"],ext));
+        if(_.include(["GIF","JPG","JPEG","PNG"],ext)){
+            return true;
+        }else{
+            showMessage("Upload jpg, gif or png images only");
+            return false;
         }
+    }
 
-        function validateForgotPasswordForm() {
-            var errorMsg = emailValidator.validate("forgotPassword_email");
-            showMessage(errorMsg);
-            return errorMsg == '';
-        }
+</script>
 
-        function sendRecoveryRequest(loginForm) {
-            if (validateForgotPasswordForm()) {
-                $.post('/recoverAccount', {'email':$('#forgotPassword_email').val()}, function (data) {
-                    showMessage(data.msg);
-                });
-            }
-        }
-    </script>
-</c:if>
 <script>
     $('#myModal').modal({
         keyboard:false,
         show:false
     });
-    $(window).bind('hashchange', hashChangeHandler);
-    $(document).ready(function () {
-        $(window).trigger('hashchange');
-    });
+
+    $('.collapse').collapse();
 </script>
 
 <script type="text/javascript">
@@ -272,6 +283,44 @@
     function clearTimeouts(){
         if (timeouts) for (var i in timeouts) if (timeouts[i]) window.clearTimeout(timeouts[i]);
         timeouts = [];
+    }
+
+    function validatePasswordForm() {
+        var functionOutputs = [requiredFieldsValidator.validate("password_old","password_new","password_new_again"), Matches("password_new","password_new_again")];
+        var errorMsg = _.reduce(functionOutputs, function (memo, functionOutput) {
+            return memo + functionOutput;
+        }, '');
+        showMessage(errorMsg);
+        return errorMsg == '';
+    }
+
+    function changePassword(passWordForm){
+        if (validatePasswordForm()) {
+            $.post('/action/changePassword', $(passWordForm).serialize(), function (data) {
+                showMessage(data.msg);
+            });
+        }
+    }
+
+    function validateUpdateProfileForm() {
+        var functionOutputs = [requiredFieldsValidator.validate("name")];
+        var errorMsg = _.reduce(functionOutputs, function (memo, functionOutput) {
+            return memo + functionOutput;
+        }, '');
+        showMessage(errorMsg);
+        return errorMsg == '';
+    }
+
+    function updateProfileInfo(updateProfileForm){
+        if (validateUpdateProfileForm()) {
+            $.post('/action/updateProfile', $(updateProfileForm).serialize(), function (data) {
+                if (data.Success == 1) {
+                    showMessage(data.msg);
+                } else {
+                    showMessage(data.msg);
+                }
+            });
+        }
     }
 
 
