@@ -30,7 +30,7 @@ public class EmailIdVerificationMail {
                 "A request for creating a new account from this email id was made at http://www.chitter.com \r\n" +
                 "But you already have an account with us. \r\n" +
                 "In case you have forgotten your password. please click on the following link to reset your password: \r\n" +
-                "http://" + "\r\n \r\n \r\n" +
+                "http://chitter.com/accountRecovery/" + "\r\n \r\n \r\n" +
                 "Please note that the above link will expire in an hour's time for security reasons.";
     }
 

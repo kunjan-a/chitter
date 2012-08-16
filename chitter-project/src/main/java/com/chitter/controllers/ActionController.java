@@ -85,6 +85,7 @@ public class ActionController {
         userItem = userStore.updateProfileForCurrUser(userItem);
         final Map<Object, Object> response = successfulResponse.getSuccessfulResponse("You details have been updated successfully.");
         response.put("user",userItem);
+        session.setAttribute("userName", userItem.getName());
         return response;
     }
 
