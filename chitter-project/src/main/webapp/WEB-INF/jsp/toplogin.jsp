@@ -4,7 +4,7 @@
     <c:when test="${not empty sessionScope.userName}">
         <div class="btn-group pull-right">
             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                <img src="http://localhost/static/images/user/${sessionScope.userID}" width="20px" height="20px"/> ${sessionScope.userName}
+                <img src="http://chitter.com/static/images/user/${sessionScope.userID}" width="20px" height="20px"/> ${sessionScope.userName}
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">

@@ -178,7 +178,7 @@ public class UserStore {
     }
 
     private void sendRecoveryMail(String token, UserItem userItem) throws MessagingException {
-        new PasswordRecoveryMail(userItem, "http://localhost:8080/accountRecovery/" + token).send();
+        new PasswordRecoveryMail(userItem, "http://chitter.com/accountRecovery/" + token).send();
     }
 
     public UserItem validateAndExpireToken(String recoveryToken) {

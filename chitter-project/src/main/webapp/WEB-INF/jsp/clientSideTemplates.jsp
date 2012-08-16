@@ -16,7 +16,7 @@
 <script type="text/template" id="tweetItemTemplateNew">
     <!--<li class="tweetItem well" id="tweetItem_<\%= tweetId %>" style="width:650px">
         <div class="timeStamp" style="align:right;color:#a9a9a9;"><\%= time %></div>
-        <span style="float:left" width:60px><img src="http://localhost//static/images/user/1" width="60px" height="60px"/></span>
+        <span style="float:left" width:60px><img src="http://chitter.com//static/images/user/1" width="60px" height="60px"/></span>
         <span>
             <div class="tweetedBy"><a href="#!/users/<\%= tweetUserId %>/"><\%= name %></a></div>
             <div class="tweetContent"><\%= tweetText %></div>
@@ -34,7 +34,7 @@
 
     <li id="tweetItem_<\%= tweetId %>" class="well" style="width:650px">
         <h3>
-            <img src="http://localhost//static/images/user/1" alt="<\%= name %>" width="45" style="float:left">
+            <img src="http://chitter.com//static/images/user/1" alt="<\%= name %>" width="45" style="float:left">
             <div style="margin-top: 0px;">
                 <a href="/#!/users/<\%= tweetUserId %>" title="<\%= name %>"><\%= name %></a>
 
@@ -56,7 +56,7 @@
 
 <script type="text/template" id="profileBanner">
     <div class="banner-container well">
-        <div class="profilepic"><img src="http://localhost/<\%= photoPath %>" alt="User Name" width="100px" height="100px"></div>
+        <div class="profilepic"><img src="http://chitter.com/<\%= photoPath %>" alt="User Name" width="100px" height="100px"></div>
         <div class="bannertext">
             <h1><\%= name %></h1>
             <h2>additional details</h2>

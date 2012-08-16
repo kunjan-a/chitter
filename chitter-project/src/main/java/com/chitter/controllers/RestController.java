@@ -67,13 +67,13 @@ public class RestController {
     @RequestMapping("{userId}/tweetsBefore")
     @ResponseBody
     public Map<Object, Object>
-    fetchTweetsBefore(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp beforeTime, HttpSession session) {
+    fetchTweetsBefore(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Long beforeTime, HttpSession session) {
         Map<Object, Object> response;
-
+        Timestamp time = beforeTime==null?null:new Timestamp(beforeTime);
         UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = tweetStore.listTweetsBefore(userItem, numResults, beforeTime);
+            List<FeedItem> feeds = tweetStore.listTweetsBefore(userItem, numResults, time);
             response = getFeedsResponse(userItem, feeds);
         } else {
             response = userIdNotFoundFailureResponse(userId);
@@ -84,13 +84,13 @@ public class RestController {
     @RequestMapping("{userId}/tweetsAfter")
     @ResponseBody
     public Map<Object, Object>
-    fetchTweetsAfter(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp afterTime, HttpSession session) {
+    fetchTweetsAfter(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Long afterTime, HttpSession session) {
         Map<Object, Object> response;
-
+        Timestamp time = afterTime==null?null:new Timestamp(afterTime);
         UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = tweetStore.listTweetsAfter(userItem, numResults, afterTime);
+            List<FeedItem> feeds = tweetStore.listTweetsAfter(userItem, numResults, time);
             response = getFeedsResponse(userItem, feeds);
         } else {
             response = userIdNotFoundFailureResponse(userId);
@@ -137,13 +137,13 @@ public class RestController {
     @RequestMapping("{userId}/feedsAfter")
     @ResponseBody
     public Map<Object, Object>
-    feedsAfter(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp afterTime, HttpSession session) {
+    feedsAfter(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Long afterTime, HttpSession session) {
         Map<Object, Object> response;
-
+        Timestamp time = afterTime==null?null:new Timestamp(afterTime);
         UserItem userItem = userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = tweetStore.listFeedsAfter(userItem, numResults, afterTime);
+            List<FeedItem> feeds = tweetStore.listFeedsAfter(userItem, numResults, time);
             response = getFeedsResponse(userItem, feeds);
         } else {
             response = userIdNotFoundFailureResponse(userId);
@@ -154,13 +154,14 @@ public class RestController {
     @RequestMapping("{userId}/feedsBefore")
     @ResponseBody
     public Map<Object, Object>
-    feedsBefore(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Timestamp beforeTime, HttpSession session) {
+    feedsBefore(@PathVariable long userId, @RequestParam(required = false) Integer numResults, @RequestParam(required = false) Long beforeTime, HttpSession session) {
+        Timestamp time = new Timestamp(beforeTime);
         Map<Object, Object> response;
 
-        UserItem userItem = userStore.getUserWithId(userId);
+        UserItem userItem = beforeTime==null?null:userStore.getUserWithId(userId);
         final boolean validId = userItem != null;
         if (validId) {
-            List<FeedItem> feeds = tweetStore.listFeedsBefore(userItem, numResults, beforeTime);
+            List<FeedItem> feeds = tweetStore.listFeedsBefore(userItem, numResults, time);
             response = getFeedsResponse(userItem, feeds);
         } else {
             response = userIdNotFoundFailureResponse(userId);

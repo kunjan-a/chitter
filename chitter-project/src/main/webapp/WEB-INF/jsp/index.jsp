@@ -380,7 +380,7 @@
             }
 
         }).data( "autocomplete" )._renderItem = function( ul, item ) {
-            var inner_html = '<a><div class="list_item_container"><span><img src="http://localhost/' + item.imagePath + '" width="20px" height="20px"></span><span>' + item.label + '</span></div></a>';
+            var inner_html = '<a><div class="list_item_container"><span><img src="http://chitter.com/' + item.imagePath + '" width="20px" height="20px"></span><span>' + item.label + '</span></div></a>';
             return $( "<li></li>" )
                     .data( "item.autocomplete", item )
                     .append(inner_html)
