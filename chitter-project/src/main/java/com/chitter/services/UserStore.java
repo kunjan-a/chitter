@@ -1,5 +1,6 @@
 package com.chitter.services;
 
+import com.chitter.mail.EmailIdVerificationMail;
 import com.chitter.mail.PasswordRecoveryMail;
 import com.chitter.model.FeedItem;
 import com.chitter.model.UserItem;
@@ -194,7 +195,7 @@ public class UserStore {
     }
 
     private void sendEmailVerificationMail(String token, UserItem userItem, boolean accountExists) throws MessagingException {
-        new PasswordRecoveryMail(userItem, "http://chitter.com/accountRecovery/" + token).send();
+        new EmailIdVerificationMail(userItem, token,accountExists).send();
     }
 
     public UserItem validateAndExpireToken(String recoveryToken) {

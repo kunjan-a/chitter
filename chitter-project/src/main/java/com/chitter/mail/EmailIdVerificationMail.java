@@ -19,16 +19,18 @@ public class EmailIdVerificationMail {
     private String text;
 
 
-    public EmailIdVerificationMail(UserItem userItem, String recoveryUrl){
+    public EmailIdVerificationMail(UserItem userItem, String recoveryUrl, boolean accountExists){
         this.to = userItem.getEmail();
-        setText(userItem,recoveryUrl);
+        setText(userItem,recoveryUrl,accountExists);
     }
 
-    private void setText(UserItem userItem, String recoveryUrl) {
-        this.text="Dear "+userItem.getName()+", \r\n" +
-                "There was a request for recovering your password made at http://www.chitter.com \r\n" +
-                "Please click on the following link to reset your password: \r\n" +
-                recoveryUrl + "\r\n \r\n \r\n" +
+    private void setText(UserItem userItem, String recoveryUrl, boolean accountExists) {
+        if(accountExists)
+            this.text="Dear "+userItem.getName()+", \r\n" +
+                "A request for creating a new account from this email id was made at http://www.chitter.com \r\n" +
+                "But you already have an account with us. \r\n" +
+                "In case you have forgotten your password. please click on the following link to reset your password: \r\n" +
+                "http://" + "\r\n \r\n \r\n" +
                 "Please note that the above link will expire in an hour's time for security reasons.";
     }
 
