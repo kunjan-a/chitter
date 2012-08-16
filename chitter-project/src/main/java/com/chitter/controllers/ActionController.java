@@ -83,7 +83,7 @@ public class ActionController {
                   @RequestParam(required = false) String bio, @RequestParam(required = false) String website,
                   UserItem userItem, HttpSession session) throws IOException {
         userItem = userStore.updateProfileForCurrUser(userItem);
-        final Map<Object, Object> response = successfulResponse.getSuccessfulResponse("User details updated successfully.");
+        final Map<Object, Object> response = successfulResponse.getSuccessfulResponse("You details have been updated successfully.");
         response.put("user",userItem);
         return response;
     }
@@ -92,7 +92,7 @@ public class ActionController {
     @ResponseBody
     public Map<Object, Object>
     tweet(@RequestParam String text, TweetItem tweetItem, HttpSession session) {
-        Map<Object, Object> response = successfulResponse.getSuccessfulResponse(tweetStore.addTweet(tweetItem));
+        Map<Object, Object> response = successfulResponse.getSuccessfulResponse("Tweet successful",tweetStore.addTweet(tweetItem));
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
     }
@@ -105,7 +105,7 @@ public class ActionController {
         Map<Object, Object> response;
         List<FeedItem> retweet = tweetStore.retweet(tweetItem);
         if (retweet != null)
-            response = successfulResponse.getSuccessfulResponse(retweet);
+            response = successfulResponse.getSuccessfulResponse("Retweet successful",retweet);
         else
             response = failureResponse.getFailureResponse("Invalid ReTweet Request");
 
@@ -122,7 +122,7 @@ public class ActionController {
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null) {
             if (followStore.follow(userItem))
-                response = successfulResponse.getSuccessfulResponse();
+                response = successfulResponse.getSuccessfulResponse("You will receive all new tweets from "+userItem.getName());
             else
                 response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         } else
@@ -141,7 +141,7 @@ public class ActionController {
         if (userItem != null && !followStore.unfollow(userItem))
             response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         else
-            response = successfulResponse.getSuccessfulResponse();
+            response = successfulResponse.getSuccessfulResponse("You will not receive new tweets from "+userItem.getName());
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
     }
@@ -154,7 +154,7 @@ public class ActionController {
         TweetItem tweetItem = tweetStore.getTweetWithId(tweet_id, tweet_creator_id);
         if(tweetItem!=null){
             if(favouriteTweetStore.markFavouriteOfCurrent(tweetItem))
-                response = successfulResponse.getSuccessfulResponse();
+                response = successfulResponse.getSuccessfulResponse("Made favourite.");
             else
                 response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         } else
@@ -187,7 +187,7 @@ public class ActionController {
         UserItem userItem = userStore.getUserWithId(user_id);
         if (userItem != null) {
             if (favouriteUserStore.markFavouriteOfCurrent(userItem))
-                response = successfulResponse.getSuccessfulResponse();
+                response = successfulResponse.getSuccessfulResponse(userItem.getName()+" has been added to your favourite people.");
             else
                 response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         } else
@@ -206,7 +206,7 @@ public class ActionController {
         if (userItem != null && !favouriteUserStore.unmarkFavouriteOfCurrent(userItem))
             response = failureResponse.getFailureResponse("Sorry. Some error occurred. Please try again.");
         else
-            response = successfulResponse.getSuccessfulResponse();
+            response = successfulResponse.getSuccessfulResponse(userItem.getName() + " has been removed from your favourites.");
 
         response.put("user", userStore.getUserWithId((Long) session.getAttribute("userID")));
         return response;
