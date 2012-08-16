@@ -67,10 +67,7 @@ public class ActionController {
     public Map<Object, Object>
     changePassword(@RequestParam String currentPassword, @RequestParam String password,
                    @RequestParam String password2, HttpSession session) throws IOException {
-
-
-        UserItem userItem = userStore.getUserWithCredentials(userStore.getUserWithId((Long) session.getAttribute("userID")), currentPassword);
-
+       UserItem userItem = userStore.getUserWithCredentials(userStore.getUserWithId((Long) session.getAttribute("userID")), currentPassword);
         if (userItem != null) {
             userStore.updatePassword(password, userItem);
             return successfulResponse.getSuccessfulResponse("Password updated successfully.");
