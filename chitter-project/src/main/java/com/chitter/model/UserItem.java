@@ -43,15 +43,15 @@ public class UserItem {
     }
 
     public String getBio() {
-        return bio;
+        return bio!=null?bio:"";
     }
 
     public String getWebsite() {
-        return website;
+        return website!=null?website:"";
     }
 
     public String getLocation() {
-        return location;
+        return location!=null?location:"";
     }
 
     private String emailVerification;

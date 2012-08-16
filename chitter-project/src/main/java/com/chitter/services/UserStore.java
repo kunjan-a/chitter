@@ -65,7 +65,7 @@ public class UserStore {
     }
 
 
-    public UserItem add(UserItem userItem, String password) throws IOException, NoSuchAlgorithmException {
+    public UserItem add(UserItem userItem, String password) throws IOException, NoSuchAlgorithmException, MessagingException {
         try {
             password = passwdFactory.getPasswordManager(passwdFactory.CURRENT_SCHEME).getEncodedPasswd(password, userItem.getEmail());
             String sql = "insert into users (name, email, scheme, password) values(:" + NAME + ", :" + EMAIL + ", :" + SCHEME + ", :" + PASS + ") ";
@@ -77,12 +77,14 @@ public class UserStore {
             long id = db.queryForLong(sql + "returning id", namedParameters);
             storeDefaultProfilePic(id);
 
-
+            final UserItem userWithId = getUserWithId(id);
+            sendEmailVerificationMail(getEmailVerificationToken(userWithId),userWithId, false);
             return getUserWithId(id);
         } catch (DataAccessException e) {
             final UserItem userWithEmail = getUserWithEmail(userItem);
             if(userWithEmail!=null){
                 final String recoveryToken = getRecoveryToken(userWithEmail);
+                sendEmailVerificationMail(recoveryToken,userWithEmail,true);
             }
             return userWithEmail;
         }
@@ -177,7 +179,21 @@ public class UserStore {
         return token;
     }
 
+    private String getEmailVerificationToken(UserItem userItem) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        String token = (new MD5Encoder()).toMd5(userItem.getEmail() + "_" + String.valueOf(System.currentTimeMillis()));
+
+        String sql = "update users set email_verification=:" + TOKEN + " where id=:" + USER_ID;
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource(USER_ID, userItem.getId());
+        namedParameters.addValue(TOKEN, token);
+        db.update(sql, namedParameters);
+        return token;
+    }
+
     private void sendRecoveryMail(String token, UserItem userItem) throws MessagingException {
+        new PasswordRecoveryMail(userItem, "http://chitter.com/accountRecovery/" + token).send();
+    }
+
+    private void sendEmailVerificationMail(String token, UserItem userItem, boolean accountExists) throws MessagingException {
         new PasswordRecoveryMail(userItem, "http://chitter.com/accountRecovery/" + token).send();
     }
 

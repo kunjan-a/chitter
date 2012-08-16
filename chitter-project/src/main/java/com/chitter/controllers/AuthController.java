@@ -116,7 +116,7 @@ public class AuthController {
     @RequestMapping(value = "/request/register", method = RequestMethod.POST)
     @ResponseBody
     public Map<Object, Object>
-    register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) throws IOException, NoSuchAlgorithmException {
+    register(@RequestParam String name, @RequestParam String email, @RequestParam String password, UserItem userItem, HttpSession session) throws IOException, NoSuchAlgorithmException, MessagingException {
         Map<Object, Object> response;
 
         UserItem addedUserItem = userStore.add(userItem, password);
