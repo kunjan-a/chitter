@@ -12,7 +12,7 @@ Implemented features
 * forgot/reset password
   * password recovery mail
 * upload profile pic
-* profile edit
+* edit profile
 
 ### Tweet
 * make tweet
@@ -22,7 +22,7 @@ Implemented features
 
 
 ### Users
-* follow/ubfollow
+* follow/unfollow
 * mark favorite
 * show followers/following
 * User search
